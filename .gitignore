@@ -1,0 +1,10 @@
+
+# build dirs
+/__pycache__
+
+# .py files
+clipboard.py
+ou_noise.py
+
+# results
+results
