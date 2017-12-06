@@ -1,49 +1,61 @@
 import gym
 import numpy as np
 from agent import *
-from time import time
-# from ou_noise import OUNoise
+from timer import *
 time_now = -1
 
 # do i need exploration noise ?
 
 
 def main():
-    eps = [10000, 5000, 5001, 2000, 2001, 2002]
+    # eps = [10000, 5000, 5001, 2000, 2001, 2002]
+    eps = [2000]
     for i in eps:
-        run(episodes=i)
+        run(episodes=i,
+            collecting_data=False)
 
 
-def run(episodes=10000):
-    collecting_data = True
+def run(episodes=[10000], collecting_data=True):
 
     experiment = ('CartPole-v1',
                   'InvertedPendulum-v1',
-                  'LunarLander-v2')[1]
+                  'LunarLanderContinuous-v2')[1]
     env = gym.make(experiment)
 
     print(env.observation_space)
     print(env.action_space)
 
     steps = env.spec.timestep_limit
-    # agent = DDPGAgent(env)
-    agent = WolpertingerAgent(env, k_nearest_neighbors=10, max_actions=1e3)
+
+    agent = DDPGAgent(env)
+    # agent = WolpertingerAgent(env, k_nearest_neighbors=1, max_actions=1e3)
     # agent = DiscreteRandomAgent(env)
-    # exploration_noise = OUNoise(agent.action_space_size)
 
     episode_history = []
     reward_history = []
+
+    timings = {'render': 0,
+               'act': 0,
+               'step': 0,
+               'observe': 0,
+               'saving': 0,
+               'steps': 0,
+               'total': 0}
+
     for i in range(episodes):
-        delta_t(reset=True)
+        timer = Timer()
         observation = env.reset()
         total_reward = 0
         print('Episode ', i, '/', episodes - 1, 'started', end='... ')
         for t in range(steps):
 
+            timer.dt()  # reset dt timer
             if not collecting_data:
                 env.render()
+            timings['render'] += timer.dt()
 
-            action = agent.act(observation)  # + exploration_noise.noise()
+            action = agent.act(observation)
+            timings['act'] += timer.dt()
 
             prev_observation = observation
             observation, reward, done, info = env.step(action)
@@ -54,26 +66,45 @@ def run(episodes=10000):
                        'done': done,
                        't': t}
 
-            episode_history.append(episode)
+            timings['step'] += timer.dt()
+
+            # if not collecting_data:
+            #     episode_history.append(episode)
 
             # print('\n' + str(episode['obs']))
 
             agent.observe(episode)
+            timings['observe'] += timer.dt()
 
             total_reward += reward
             if done or (t == steps - 1):
-                reward_history.append(total_reward)
-                time_passed = delta_t()
-                print('Reward:', total_reward, 'Steps:', t, 't=',
+                t += 1
+                if not collecting_data:
+                    # save_episode(episode_history)
+                    pass
+                else:
+                    reward_history.append(total_reward)
+                    np.savetxt("results/reward_history_" + str(episodes) +
+                               ".txt", np.array(reward_history), newline='\n')
+                timings['saving'] += timer.dt()
+                timings['steps'] += t
+                time_passed = timer.get_time()
+                timings['total'] += time_passed
+                print('Reward:', total_reward, 'Steps:', t, 't:',
                       time_passed, '({}/step)'.format(round(time_passed / t)))
 
-                if not collecting_data:
-                    save_episode(episode_history)
-                # exploration_noise.reset()  # reinitializing random noise for action exploration
                 break
-
-        np.savetxt("results/reward_history_" + str(episodes) +
-                   ".txt", np.array(reward_history), newline='\n')
+    # end of episodes
+    print('key\t\tabs\t\tavg/step\t%\\total\n-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-\nSteps:',
+          timings['steps'])
+    keys = list(timings.keys())
+    keys.sort()
+    for key in keys:
+        if key is 'steps':
+            continue
+        temp = timings[key]
+        print('{}\t\t{}\t\t{:6.2f}\t\t{:6.2f}'.format(key, temp,
+                                                      temp / timings['steps'], 100 * temp / timings['total']))
 
 
 def save_episode(episode, overwrite=True):
@@ -107,17 +138,6 @@ def save_episode(episode, overwrite=True):
                 file.write(string)
                 file.close()
                 break
-
-
-def delta_t(reset=False):
-
-    global time_now
-    if reset:
-        time_now = -1
-
-    if time_now == -1:
-        time_now = int(round(time() * 1000))
-    return int(round(time() * 1000)) - time_now
 
 
 if __name__ == '__main__':
