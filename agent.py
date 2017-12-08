@@ -1,6 +1,7 @@
 import random
 import numpy as np
 
+from util.performance_data.timer import *
 
 import gym
 from gym.spaces import Box, Discrete
@@ -21,22 +22,21 @@ MAX_ACTION_SPACE_SIZE = 1e6
 class Agent:
 
     def __init__(self, env):
+        # checking state space
         if isinstance(env.observation_space, Box):
             self.observation_space_size = env.observation_space.shape[0]
         else:
             self.observation_space_size = env.observation_space.n
 
+        # checking action space
         if isinstance(env.action_space, Box):
             self.action_space_size = env.action_space.shape[0]
-        else:
-            self.action_space_size = env.action_space.n
-
-        if isinstance(env.action_space, Box):
-            self.continuous = True
+            self.continious_action_space = True
             self.low = env.action_space.low
             self.high = env.action_space.high
         else:
-            self.continuous = False
+            self.action_space_size = env.action_space.n
+            self.continious_action_space = False
             self.low = 0
             self.high = env.action_space.n
 
@@ -46,26 +46,21 @@ class Agent:
     def observe(self, episode):
         pass
 
+    # shaping input states and actions
     def _np_shaping(self, array, is_state):
-        # print('np _shaping', array, is_state)
-        # print(array.shape)
-        # print('shape lenght', len(array.shape))
+
         number_of_elements = array.shape[0] if len(array.shape) > 1 else 1
         size_of_element = self.observation_space_size if is_state else self.action_space_size
-        # print('will reshaped to ({}, {})\nend shaping'.format(number_of_elements, size_of_element))
+
         res = np.array(array)
         res.shape = (number_of_elements, size_of_element)
-
         return res
 
 
 class RandomAgent(Agent):
 
-    # def __init__(self, env):
-    #     super().__init__(env)
-
     def act(self, state):
-        if self.continuous:
+        if self.continious_action_space:
             res = self.low + (self.high - self.low) * np.random.uniform(size=len(self.low))
             return res
         else:
@@ -76,7 +71,7 @@ class DiscreteRandomAgent(RandomAgent):
 
     def __init__(self, env, max_actions=10):
         super().__init__(env)
-        if self.continuous:
+        if self.continious_action_space:
             self.actions = np.linspace(self.low, self.high, max_actions)
         else:
             self.actions = np.arange(self.low, self.high)
@@ -87,6 +82,7 @@ class DiscreteRandomAgent(RandomAgent):
 
 
 class DDPGAgent(Agent):
+    ''' stevenpjg's implementation of DDPG algorithm '''
 
     REPLAY_MEMORY_SIZE = 10000
     BATCH_SIZE = 64
@@ -116,6 +112,11 @@ class DDPGAgent(Agent):
         action_bounds = [action_max, action_min]
         self.grad_inv = grad_inverter(action_bounds)
 
+        self.train_timings = Time_stats("Train times",
+                                        ['p_t', 'q_t', 'y',
+                                         'train_q', 'train_p',
+                                         'up_q_t', 'up_p_t'])
+
     def act(self, state):
         state = self._np_shaping(state, True)
         return self.actor_net.evaluate_actor(state).astype(float)
@@ -134,7 +135,10 @@ class DDPGAgent(Agent):
             self.replay_memory.popleft()
 
         if len(self.replay_memory) > type(self).BATCH_SIZE:
-            self.train()
+            res = self.train()
+            return res
+        else:
+            return None
 
     def minibatches(self):
         batch = random.sample(self.replay_memory, type(self).BATCH_SIZE)
@@ -152,26 +156,17 @@ class DDPGAgent(Agent):
         return state, action, reward, state_2, done
 
     def train(self):
-        debug = False
         # sample a random minibatch of N transitions from R
         state, action, reward, state_2, done = self.minibatches()
 
         actual_batch_size = len(state)
-        if debug:
-            print('batch size', actual_batch_size)
 
+        self.train_timings.reset_timers()
         target_action = self.actor_net.evaluate_target_actor(state)
-        if debug:
-            print('target_actions', target_action.shape)
-            for i in range(actual_batch_size):
-                s = self._np_shaping(state_2[i], True)
-                print('pt(', s, ')=', target_action[i])
-
+        self.train_timings.add_time('p_t')
         # Q'(s_i+1,a_i+1)
         q_t = self.critic_net.evaluate_target_critic(state_2, target_action)
-
-        if debug:
-            print('Qt(', state[i], ',', target_action[i], ')= ', q_t[i])
+        self.train_timings.add_time('q_t')
 
         y = []  # fix initialization of y
         for i in range(0, actual_batch_size):
@@ -182,19 +177,14 @@ class DDPGAgent(Agent):
                 y.append(reward[i] + type(self).GAMMA * q_t[i][0])  # q_t+1 instead of q_t
 
         y = np.reshape(np.array(y), [len(y), 1])
-        if debug:
-            for i in range(actual_batch_size):
-                if done[i]:
-                    print('{} = {}'.format(y[i], reward[i]))
-                else:
-                    print(
-                        '{} = {} +{}*Qt({}, pt({}))'.format(y[i], reward[i], self.GAMMA, state[i], action[i]))
-        # exit()
+        self.train_timings.add_time('y')
+
         # Update critic by minimizing the loss
         self.critic_net.train_critic(state, action, y)
-
+        self.train_timings.add_time('train_q')
         # Update actor proportional to the gradients:
-        action_for_delQ = self.act(state)  # was self.evaluate_actor instead of self.act
+        # action_for_delQ = self.act(state)  # was self.evaluate_actor instead of self.act
+        action_for_delQ = self.actor_net.evaluate_actor(state)  # dont need wolp action
 
         if self.is_grad_inverter:
             del_Q_a = self.critic_net.compute_delQ_a(state, action_for_delQ)  # /BATCH_SIZE
@@ -204,17 +194,24 @@ class DDPGAgent(Agent):
 
         # train actor network proportional to delQ/dela and del_Actor_model/del_actor_parameters:
         self.actor_net.train_actor(state, del_Q_a)
+        self.train_timings.add_time('train_p')
 
         # Update target Critic and actor network
         self.critic_net.update_target_critic()
+        self.train_timings.add_time('up_q_t')
         self.actor_net.update_target_actor()
+        self.train_timings.add_time('up_p_t')
+        self.train_timings.increase_count(n=actual_batch_size / self.BATCH_SIZE)
+
+    def get_train_timings(self):
+        return self.train_timings
 
 
 class WolpertingerAgent(DDPGAgent):
 
     def __init__(self, env, max_actions=1e6, k_nearest_neighbors=10):
         super().__init__(env)
-        if self.continuous:
+        if self.continious_action_space:
             self.actions = np.linspace(self.low, self.high, max_actions)
         else:
             self.actions = np.arange(self.low, self.high)
@@ -233,6 +230,7 @@ class WolpertingerAgent(DDPGAgent):
         proto_action = super().act(state)
         if self.k_nearest_neighbors <= 1:
             return proto_action
+
         if len(proto_action) > 1:
             # print('\n\n\nproto action shape', proto_action.shape)
             res = np.array([])

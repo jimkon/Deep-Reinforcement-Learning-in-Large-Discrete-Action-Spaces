@@ -1,18 +1,18 @@
 import gym
 import numpy as np
-from agent import *
-from timer import *
-time_now = -1
 
-# do i need exploration noise ?
+from agent import *
+from util.performance_data.timer import *
+# import util.performance_data.timer as timer
+time_now = -1
 
 
 def main():
     # eps = [10000, 5000, 5001, 2000, 2001, 2002]
-    eps = [2000]
+    eps = [20]
     for i in eps:
         run(episodes=i,
-            collecting_data=False)
+            collecting_data=True)
 
 
 def run(episodes=[10000], collecting_data=True):
@@ -27,35 +27,30 @@ def run(episodes=[10000], collecting_data=True):
 
     steps = env.spec.timestep_limit
 
-    agent = DDPGAgent(env)
-    # agent = WolpertingerAgent(env, k_nearest_neighbors=1, max_actions=1e3)
+    # agent = DDPGAgent(env)
+    agent = WolpertingerAgent(env, k_nearest_neighbors=1, max_actions=1e3)
     # agent = DiscreteRandomAgent(env)
 
     episode_history = []
     reward_history = []
 
-    timings = {'render': 0,
-               'act': 0,
-               'step': 0,
-               'observe': 0,
-               'saving': 0,
-               'steps': 0,
-               'total': 0}
-
+    episode_timings = Time_stats("Episode times",
+                                 ['render', 'act', 'step', 'observe', 'saving'])
     for i in range(episodes):
-        timer = Timer()
+
         observation = env.reset()
         total_reward = 0
         print('Episode ', i, '/', episodes - 1, 'started', end='... ')
         for t in range(steps):
 
-            timer.dt()  # reset dt timer
+            episode_timings.reset_timers()
+
             if not collecting_data:
                 env.render()
-            timings['render'] += timer.dt()
+            episode_timings.add_time('render')
 
             action = agent.act(observation)
-            timings['act'] += timer.dt()
+            episode_timings.add_time('act')
 
             prev_observation = observation
             observation, reward, done, info = env.step(action)
@@ -66,7 +61,7 @@ def run(episodes=[10000], collecting_data=True):
                        'done': done,
                        't': t}
 
-            timings['step'] += timer.dt()
+            episode_timings.add_time('step')
 
             # if not collecting_data:
             #     episode_history.append(episode)
@@ -74,7 +69,7 @@ def run(episodes=[10000], collecting_data=True):
             # print('\n' + str(episode['obs']))
 
             agent.observe(episode)
-            timings['observe'] += timer.dt()
+            episode_timings.add_time('observe')
 
             total_reward += reward
             if done or (t == steps - 1):
@@ -86,25 +81,18 @@ def run(episodes=[10000], collecting_data=True):
                     reward_history.append(total_reward)
                     np.savetxt("results/reward_history_" + str(episodes) +
                                ".txt", np.array(reward_history), newline='\n')
-                timings['saving'] += timer.dt()
-                timings['steps'] += t
-                time_passed = timer.get_time()
-                timings['total'] += time_passed
+                episode_timings.add_time('saving')
+
+                episode_timings.increase_count(n=t)
+
+                time_passed = episode_timings.get_total()
                 print('Reward:', total_reward, 'Steps:', t, 't:',
                       time_passed, '({}/step)'.format(round(time_passed / t)))
 
                 break
     # end of episodes
-    print('key\t\tabs\t\tavg/step\t%\\total\n-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-\nSteps:',
-          timings['steps'])
-    keys = list(timings.keys())
-    keys.sort()
-    for key in keys:
-        if key is 'steps':
-            continue
-        temp = timings[key]
-        print('{}\t\t{}\t\t{:6.2f}\t\t{:6.2f}'.format(key, temp,
-                                                      temp / timings['steps'], 100 * temp / timings['total']))
+    agent.get_train_timings().print_stats()
+    episode_timings.print_stats()
 
 
 def save_episode(episode, overwrite=True):
@@ -115,7 +103,7 @@ def save_episode(episode, overwrite=True):
     string = str(episode).replace('},', '\n').replace('{', '')
 
     if overwrite:
-        file = open('results/clipboard.txt', 'w')
+        file = open('results/last_episode', 'w')
         file.write(string)
         file.close()
     else:
