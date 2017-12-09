@@ -10,16 +10,16 @@ class Timer:
         self.now = Timer._get_current_milis()
         self.dt_now = self.now
 
-    def reset_dt(self):
-        self.dt_now = Timer._get_current_milis()
+    # def reset_dt(self):
+    #     self.dt_now = Timer._get_current_milis()
 
     def get_time(self):
         return Timer._get_current_milis() - self.now
 
-    def dt(self):
-        res = Timer._get_current_milis() - self.dt_now
-        self.dt_now = Timer._get_current_milis()
-        return res
+    # def dt(self):
+    #     res = Timer._get_current_milis() - self.dt_now
+    #     self.dt_now = Timer._get_current_milis()
+    #     return res
 
     @staticmethod
     def _get_current_milis():
