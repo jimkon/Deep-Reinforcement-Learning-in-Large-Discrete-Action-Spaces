@@ -39,16 +39,20 @@ def plot_data(data, batch_size=-1, file_name="data"):
 
     line_widths = [1, 2, 1, 0.5]
     line_colors = ['r', 'g', 'b', 'm']
-    texts = ['max', 'avg', 'min', 'der']
+    texts = ['max', 'data', 'min', 'der']
     for i in range(3):  # derivative out
         if batch_size == 1 and not i == 1:
             continue
 
         index = int((i + 5) * 0.1 * len(final_data[:, i]))
         plt.plot(x_axis, final_data[:, i], line_colors[i], linewidth=line_widths[i])
-        plt.annotate(texts[i],  xy=(x_axis[index], final_data[index, i]),
-                     xytext=(x_axis[index], final_data[index, i] + int(np.amax(final_data) * 0.4)),
-                     arrowprops=dict(facecolor=line_colors[i], shrink=0.05))
+        plt.text(0.05 * len(final_data[:, i]), (i + 1) * 0.1 * np.amax(final_data[:, 0]),
+                 texts[i], color=line_colors[i])
+
+        # plt.annotate(texts[i],  xy=(x_axis[index], final_data[index, i]),
+        #              xytext=(x_axis[index], final_data[index, i] + int(np.amax(final_data) * 0.4)),
+        #              arrowprops=dict(facecolor=line_colors[i], shrink=0.05))
+
     # plt.plot(x_axis, final_data[:, 0], 'r', linewidth = 1)
     # plt.plot(x_axis, final_data[:, 1], 'g')
     # plt.plot(x_axis, final_data[:, 2], 'b', linewidth = 1)
@@ -82,6 +86,32 @@ def plot_data(data, batch_size=-1, file_name="data"):
     plt.ylabel("Samples")
     plt.xlabel("Value")
 
+    plt.show()
+
+# unstested
+
+
+def plot_surface(X, Y, Z):
+    from mpl_toolkits.mplot3d import Axes3D
+    import matplotlib.pyplot as plt
+    from matplotlib import cm
+    from matplotlib.ticker import LinearLocator, FormatStrFormatter
+    import numpy as np
+
+    fig = plt.figure(figsize=plt.figaspect(0.5))
+    ax = fig.add_subplot(1, 2, 1)
+
+    t = plt.imshow(Z)
+
+    t.set_cmap(cm.coolwarm)
+    plt.colorbar()
+    ax = fig.add_subplot(1, 2, 2, projection='3d')
+    # Plot the surface.
+    surf = ax.plot_surface(X, Y, Z, cmap=cm.coolwarm,
+                           linewidth=0, antialiased=False)
+    # Add a color bar which maps values to colors.
+    # fig.colorbars(surf, shrink=0.5, aspect=5)
+    plt.tight_layout()
     plt.show()
 
 
