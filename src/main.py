@@ -2,14 +2,14 @@ import gym
 import numpy as np
 
 from agent import *
-from util.performance_data.timer import *
+from util import *
 # import util.performance_data.timer as timer
 time_now = -1
 
 
 def main():
     # eps = [10000, 5000, 5001, 2000, 2001, 2002]
-    eps = [20]
+    eps = [2000, 2001, 2002, 2003, 2004, 2005, 2006, 3000, 3001, 5000]
     for i in eps:
         run(episodes=i,
             collecting_data=True)
@@ -27,17 +27,21 @@ def run(episodes=[10000], collecting_data=True):
 
     steps = env.spec.timestep_limit
 
-    # agent = DDPGAgent(env)
-    agent = WolpertingerAgent(env, k_nearest_neighbors=1, max_actions=1e3)
+    agent = DDPGAgent(env)
+    # agent = WolpertingerAgent(env, k_nearest_neighbors=1, max_actions=1e3)
+    # agent.load_expierience()
+    # exit()
     # agent = DiscreteRandomAgent(env)
 
     episode_history = []
     reward_history = []
-
+    file_name = "results/reward_history_" + agent.get_name() + str(episodes) +
+        ".txt"
+    timer = Timer()
     episode_timings = Time_stats("Episode times",
                                  ['render', 'act', 'step', 'observe', 'saving'])
     for i in range(episodes):
-
+        timer.reset()
         observation = env.reset()
         total_reward = 0
         print('Episode ', i, '/', episodes - 1, 'started', end='... ')
@@ -63,8 +67,9 @@ def run(episodes=[10000], collecting_data=True):
 
             episode_timings.add_time('step')
 
-            # if not collecting_data:
-            #     episode_history.append(episode)
+            if collecting_data:
+                episode_history.append(episode)
+                episode_timings.add_time('saving')
 
             # print('\n' + str(episode['obs']))
 
@@ -79,18 +84,24 @@ def run(episodes=[10000], collecting_data=True):
                     pass
                 else:
                     reward_history.append(total_reward)
-                    np.savetxt("results/reward_history_" + str(episodes) +
-                               ".txt", np.array(reward_history), newline='\n')
+                    if i % 100 == 0:
+                        np.savetxt(file_name, np.array(reward_history), newline='\n')
+                        save_episode(episode_history)
+
                 episode_timings.add_time('saving')
 
                 episode_timings.increase_count(n=t)
 
-                time_passed = episode_timings.get_total()
+                time_passed = timer.get_time()
                 print('Reward:', total_reward, 'Steps:', t, 't:',
                       time_passed, '({}/step)'.format(round(time_passed / t)))
 
                 break
     # end of episodes
+    if collecting_data:
+        np.savetxt(file_name, np.array(reward_history), newline='\n')
+        save_episode(episode_history)
+
     agent.get_train_timings().print_stats()
     episode_timings.print_stats()
 
@@ -100,7 +111,7 @@ def save_episode(episode, overwrite=True):
     import datetime
     from os import makedirs
 
-    string = str(episode).replace('},', '\n').replace('{', '')
+    string = str(episode).replace('},', '},\n')
 
     if overwrite:
         file = open('results/last_episode', 'w')

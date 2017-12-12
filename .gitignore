@@ -1,11 +1,19 @@
 
+# tests
+tests
+test_*.py
+.cache
+
 # build dirs
-/__pycache__
+__pycache__
 
 # .py files
 clipboard.py
 
+# .pyc files
+*.pyc
+
 
 # results
 results
-util/data
+data
