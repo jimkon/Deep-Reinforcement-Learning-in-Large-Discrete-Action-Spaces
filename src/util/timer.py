@@ -49,6 +49,12 @@ class Time_stats:
     def increase_count(self, n=1):
         self.count += n
 
+    def set_count(self, n):
+        self.count = n
+
+    def get_count(self):
+        return self.count
+
     def reset_timers(self):
         for key in self.timers.keys():
             self.start(key)
