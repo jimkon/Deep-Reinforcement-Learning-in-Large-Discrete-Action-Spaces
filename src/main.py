@@ -1,15 +1,27 @@
 import gym
 import numpy as np
 
+import os
+import sys
+import inspect
+# Use this if you want to include modules from a subfolder
+cmd_subfolder = os.path.realpath(os.path.abspath(os.path.join(
+    os.path.split(inspect.getfile(inspect.currentframe()))[0], "util")))
+if cmd_subfolder not in sys.path:
+    sys.path.insert(0, cmd_subfolder)
+
+
+from util.timer import *
+from util.data import *
+
 from agent import *
-from util import *
 # import util.performance_data.timer as timer
 time_now = -1
 
 
 def main():
     # eps = [10000, 5000, 5001, 2000, 2001, 2002]
-    eps = [2000, 2001, 2002, 2003, 2004, 2005, 2006, 3000, 3001, 5000]
+    eps = [20]
     for i in eps:
         run(episodes=i,
             collecting_data=True)
@@ -28,18 +40,20 @@ def run(episodes=[10000], collecting_data=True):
     steps = env.spec.timestep_limit
 
     agent = DDPGAgent(env)
-    # agent = WolpertingerAgent(env, k_nearest_neighbors=1, max_actions=1e3)
+    # agent = WolpertingerAgent(env, k_nearest_neighbors=1, max_actions=1e3, data_fetch=result_fetcher)
     # agent.load_expierience()
     # exit()
     # agent = DiscreteRandomAgent(env)
 
-    episode_history = []
-    reward_history = []
-    file_name = "results/reward_history_" + agent.get_name() + str(episodes) +
-        ".txt"
+    # file_name = "results/data_" + agent.get_name() + str(episodes) + ".txt"
+    file_name = "results/data_" + agent.get_name() + str(episodes)
+    result_fetcher = Fulldata(file_name)
+    result_fetcher.add_array('rewards')
+    result_fetcher.add_timers(['render', 'act', 'step', 'observe', 'saving'], 'run_')
+    agent.add_data_fetch(result_fetcher)
+
     timer = Timer()
-    episode_timings = Time_stats("Episode times",
-                                 ['render', 'act', 'step', 'observe', 'saving'])
+
     for i in range(episodes):
         timer.reset()
         observation = env.reset()
@@ -47,14 +61,14 @@ def run(episodes=[10000], collecting_data=True):
         print('Episode ', i, '/', episodes - 1, 'started', end='... ')
         for t in range(steps):
 
-            episode_timings.reset_timers()
+            result_fetcher.reset_timers()
 
             if not collecting_data:
                 env.render()
-            episode_timings.add_time('render')
+            result_fetcher.sample_timer('render')  # ------
 
             action = agent.act(observation)
-            episode_timings.add_time('act')
+            result_fetcher.sample_timer('act')  # ------
 
             prev_observation = observation
             observation, reward, done, info = env.step(action)
@@ -65,45 +79,39 @@ def run(episodes=[10000], collecting_data=True):
                        'done': done,
                        't': t}
 
-            episode_timings.add_time('step')
-
-            if collecting_data:
-                episode_history.append(episode)
-                episode_timings.add_time('saving')
+            result_fetcher.sample_timer('step')  # ------
 
             # print('\n' + str(episode['obs']))
 
             agent.observe(episode)
-            episode_timings.add_time('observe')
+            result_fetcher.sample_timer('observe')  # ------
 
             total_reward += reward
             if done or (t == steps - 1):
                 t += 1
-                if not collecting_data:
-                    # save_episode(episode_history)
-                    pass
-                else:
-                    reward_history.append(total_reward)
-                    if i % 100 == 0:
-                        np.savetxt(file_name, np.array(reward_history), newline='\n')
-                        save_episode(episode_history)
-
-                episode_timings.add_time('saving')
-
-                episode_timings.increase_count(n=t)
+                result_fetcher.add_to_array('rewards', total_reward)  # ------
+                result_fetcher.sample_timer('saving')  # ------
 
                 time_passed = timer.get_time()
                 print('Reward:', total_reward, 'Steps:', t, 't:',
                       time_passed, '({}/step)'.format(round(time_passed / t)))
 
+                if not collecting_data:
+                    # save_episode(episode_history)
+                    pass
+                else:
+                    if i % 100 == 0:
+                        result_fetcher.async_save()
                 break
     # end of episodes
     if collecting_data:
-        np.savetxt(file_name, np.array(reward_history), newline='\n')
-        save_episode(episode_history)
+        result_fetcher.async_save()
 
-    agent.get_train_timings().print_stats()
-    episode_timings.print_stats()
+    result_fetcher.print_times()
+    result_fetcher.print_times(group_name='run_')
+    result_fetcher.print_times(group_name='agent_')
+
+    # agent.get_train_timings().print_stats()
 
 
 def save_episode(episode, overwrite=True):
