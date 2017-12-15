@@ -6,7 +6,7 @@ import ntpath
 BATCH_RATIO = 0.01
 EXTENSIONS = ['.txt']
 DIRECTORY = "/../../results"
-# DIRECTORY = "/../../data/saved_wolp_broken"
+# DIRECTORY = "/../../data/saved_ddpg_new"
 
 
 def plot_file(file_name):

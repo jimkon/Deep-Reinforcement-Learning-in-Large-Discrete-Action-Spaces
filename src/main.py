@@ -9,7 +9,7 @@ time_now = -1
 
 def main():
     # eps = [10000, 5000, 5001, 2000, 2001, 2002]
-    eps = [20]
+    eps = [2003, 2300, 2600, 2300, 2002, 5000, 5001, 5002]
     for i in eps:
         run(episodes=i,
             collecting_data=True)
@@ -36,6 +36,7 @@ def run(episodes=[10000], collecting_data=True):
     episode_history = []
     reward_history = []
     file_name = "results/reward_history_" + agent.get_name() + str(episodes) + ".txt"
+    print(file_name)
     timer = Timer()
     episode_timings = Time_stats("Episode times",
                                  ['render', 'act', 'step', 'observe', 'saving'])
@@ -43,7 +44,7 @@ def run(episodes=[10000], collecting_data=True):
         timer.reset()
         observation = env.reset()
         total_reward = 0
-        print('Episode ', i, '/', episodes - 1, 'started', end='... ')
+        print('Episode ', i, '/', episodes - 1, 'started...', end='')
         for t in range(steps):
 
             episode_timings.reset_timers()
@@ -83,9 +84,9 @@ def run(episodes=[10000], collecting_data=True):
                     pass
                 else:
                     reward_history.append(total_reward)
-                    if i % 100 == 0:
-                        np.savetxt(file_name, np.array(reward_history), newline='\n')
-                        save_episode(episode_history)
+                    # if i % 100 == 0:
+                    #     np.savetxt(file_name, np.array(reward_history), newline='\n')
+                    #     save_episode(episode_history)
 
                 episode_timings.add_time('saving')
 
