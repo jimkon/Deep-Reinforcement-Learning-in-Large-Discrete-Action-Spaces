@@ -9,10 +9,10 @@ time_now = -1
 
 def main():
     # eps = [10000, 5000, 5001, 2000, 2001, 2002]
-    eps = [2003, 2300, 2600, 2300, 2002, 5000, 5001, 5002]
+    eps = [2500]
     for i in eps:
         run(episodes=i,
-            collecting_data=True)
+            collecting_data=False)
 
 
 def run(episodes=[10000], collecting_data=True):
@@ -27,8 +27,8 @@ def run(episodes=[10000], collecting_data=True):
 
     steps = env.spec.timestep_limit
 
-    agent = DDPGAgent(env)
-    # agent = WolpertingerAgent(env, k_nearest_neighbors=1, max_actions=1e3)
+    # agent = DDPGAgent(env)
+    agent = WolpertingerAgent(env, k_nearest_neighbors=1, max_actions=1e3)
     # agent.load_expierience()
     # exit()
     # agent = DiscreteRandomAgent(env)
@@ -84,9 +84,9 @@ def run(episodes=[10000], collecting_data=True):
                     pass
                 else:
                     reward_history.append(total_reward)
-                    # if i % 100 == 0:
-                    #     np.savetxt(file_name, np.array(reward_history), newline='\n')
-                    #     save_episode(episode_history)
+                    if i % 100 == 0:
+                        np.savetxt(file_name, np.array(reward_history), newline='\n')
+                        save_episode(episode_history)
 
                 episode_timings.add_time('saving')
 
