@@ -48,7 +48,7 @@ def run(episodes=[10000], collecting_data=True):
     # file_name = "results/data_" + agent.get_name() + str(episodes) + ".txt"
     file_name = "results/data_" + agent.get_name() + str(episodes)
     result_fetcher = Fulldata(file_name)
-    result_fetcher.add_array('rewards')
+    result_fetcher.add_arrays(['rewards', 'count'])
     result_fetcher.add_timers(['render', 'act', 'step', 'observe', 'saving'], 'run_')
     agent.add_data_fetch(result_fetcher)
 
@@ -80,6 +80,7 @@ def run(episodes=[10000], collecting_data=True):
                        't': t}
 
             result_fetcher.sample_timer('step')  # ------
+            result_fetcher.add_to_array('count', 1)
 
             # print('\n' + str(episode['obs']))
 

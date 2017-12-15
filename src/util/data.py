@@ -84,15 +84,22 @@ class Fulldata:
         thread = save_fulldata(self)
         thread.start()
 
-    def print_times(self, timer_keys=None, group_name=''):
-        if timer_keys is None:
-            temp = self.timers.keys()
-            timer_keys = []
-            for k in self.get_keys(group_name):
-                if k in temp:
-                    timer_keys.append(k)
+    def print_times(self, other_keys=None, groups=None):
+        final_keys = []
+        if (other_keys is None) and (groups is None):
+            final_keys = self.timers.keys()
+        else:
+            if other_keys is not None:
+                final_keys.extend(other_keys)
 
-        if len(timer_keys) == 0:
+            if groups is not None:
+                timers = self.timers.keys()
+                for g in groups:
+                    for t in timers:
+                        if g in t:
+                            final_keys.append(t)
+
+        if (final_keys is None) or (len(final_keys) == 0):
             print("No items found to be printed")
             return
 
@@ -100,7 +107,7 @@ class Fulldata:
         total_time = 0
         samples = []
 
-        for key in timer_keys:
+        for key in final_keys:
             times[key] = np.sum(self.get_data(key))
             total_time += times[key]
 
@@ -108,11 +115,11 @@ class Fulldata:
 
         count = max(samples)
 
-        print('\n\nName: {}\tCount: {} Group:{}'.format(self.name, count, group_name))
+        print('\n\nName: {}\tCount: {} Group:{}'.format(self.name, count, groups))
         print('key\t\tabs\t\tavg/unit\t% of total')
         print('-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-')
 
-        keys = list(timer_keys)
+        keys = list(final_keys)
         keys.sort()
         max_key_len = 5
         for key in keys:
@@ -170,7 +177,7 @@ if __name__ == '__main__':
     fd.add_to_array('array', 420)
     time.sleep(0.5)
 
-    fd.add_timers(['timer_3', 'timer_4'])
+    fd.add_timers(['timer_3', 'timer_4', 'ti'])
     time.sleep(0.7)
     fd.sample_timer('timer')
     #
@@ -180,4 +187,4 @@ if __name__ == '__main__':
     fd.print_data()
     # fd.load()
     # print(fd.get_keys())
-    fd.print_times(group_name="timer")
+    fd.print_times(other_keys=['array_1'], groups=['timer'])
