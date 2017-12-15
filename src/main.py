@@ -109,10 +109,8 @@ def run(episodes=[10000], collecting_data=True):
         result_fetcher.async_save()
 
     result_fetcher.print_times()
-    result_fetcher.print_times(group_name='run_')
-    result_fetcher.print_times(group_name='agent_')
-
-    # agent.get_train_timings().print_stats()
+    result_fetcher.print_times(groups=['run_'])
+    result_fetcher.print_times(groups=['agent_'], total_time_field='count')
 
 
 def save_episode(episode, overwrite=True):

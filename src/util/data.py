@@ -18,7 +18,7 @@ class Fulldata:
         self.data = {}
         self.timers = {}
 
-    def _add(self, field_name, timer, timer_one_hot=False):
+    def _add(self, field_name, timer, timer_one_hot=True):
         self.data[field_name] = np.array([])
         if timer:
             self.timers[field_name] = Timer(timer_one_hot)
@@ -36,12 +36,12 @@ class Fulldata:
         for f in fields:
             self.data[f] = np.append(self.data[f], value)
 
-    def add_timer(self, field_name, one_hot=False):
+    def add_timer(self, field_name, one_hot=True):
         self._add(field_name, True, one_hot)
         # self.add_array(name)
         # self.timers[name] = Timer()
 
-    def add_timers(self, names, prefix='', one_hot=False):
+    def add_timers(self, names, prefix='', one_hot=True):
         for f in names:
             self.add_timer(prefix + f, one_hot)
 
@@ -84,7 +84,7 @@ class Fulldata:
         thread = save_fulldata(self)
         thread.start()
 
-    def print_times(self, other_keys=None, groups=None):
+    def print_times(self, other_keys=None, groups=None, total_time_field=None):
         final_keys = []
         if (other_keys is None) and (groups is None):
             final_keys = self.timers.keys()
@@ -114,6 +114,8 @@ class Fulldata:
             samples.append(len(self.get_data(key)))
 
         count = max(samples)
+        if total_time_field is not None:
+            count = np.sum(self.get_data(total_time_field))
 
         print('\n\nName: {}\tCount: {} Group:{}'.format(self.name, count, groups))
         print('key\t\tabs\t\tavg/unit\t% of total')
