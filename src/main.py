@@ -21,7 +21,9 @@ time_now = -1
 
 def main():
     # eps = [10000, 5000, 5001, 2000, 2001, 2002]
+
     eps = [205]
+
     for i in eps:
         run(episodes=i,
             collecting_data=True)
@@ -45,6 +47,7 @@ def run(episodes=[10000], collecting_data=True):
     # exit()
     # agent = DiscreteRandomAgent(env)
 
+
     # file_name = "results/data_" + agent.get_name() + str(episodes) + ".txt"
     file_name = "results/data_" + agent.get_name() + str(episodes)
     result_fetcher = Fulldata(file_name)
@@ -52,6 +55,7 @@ def run(episodes=[10000], collecting_data=True):
     result_fetcher.add_timers(['render', 'act', 'step', 'saving'], 'run_')
     result_fetcher.add_timer('run_observe', one_hot=False)
     agent.add_data_fetch(result_fetcher)
+
 
     timer = Timer()
 
@@ -111,6 +115,7 @@ def run(episodes=[10000], collecting_data=True):
 
     result_fetcher.print_times(groups=['run_'])
     result_fetcher.print_times(groups=['agent_'], total_time_field='count')
+
 
 
 def save_episode(episode, overwrite=True):
