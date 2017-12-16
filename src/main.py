@@ -9,7 +9,7 @@ time_now = -1
 
 def main():
     # eps = [10000, 5000, 5001, 2000, 2001, 2002]
-    eps = [2500]
+    eps = [2501, 2550, 2600, 2601, 2602, 5000, 5001]
     for i in eps:
         run(episodes=i,
             collecting_data=False)
