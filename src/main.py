@@ -21,7 +21,7 @@ time_now = -1
 
 def main():
     # eps = [10000, 5000, 5001, 2000, 2001, 2002]
-    eps = [20]
+    eps = [205]
     for i in eps:
         run(episodes=i,
             collecting_data=True)
@@ -49,7 +49,8 @@ def run(episodes=[10000], collecting_data=True):
     file_name = "results/data_" + agent.get_name() + str(episodes)
     result_fetcher = Fulldata(file_name)
     result_fetcher.add_arrays(['rewards', 'count'])
-    result_fetcher.add_timers(['render', 'act', 'step', 'observe', 'saving'], 'run_')
+    result_fetcher.add_timers(['render', 'act', 'step', 'saving'], 'run_')
+    result_fetcher.add_timer('run_observe', one_hot=False)
     agent.add_data_fetch(result_fetcher)
 
     timer = Timer()
@@ -83,7 +84,7 @@ def run(episodes=[10000], collecting_data=True):
             result_fetcher.add_to_array('count', 1)
 
             # print('\n' + str(episode['obs']))
-
+            result_fetcher.start_timer('observe')
             agent.observe(episode)
             result_fetcher.sample_timer('observe')  # ------
 
@@ -91,7 +92,6 @@ def run(episodes=[10000], collecting_data=True):
             if done or (t == steps - 1):
                 t += 1
                 result_fetcher.add_to_array('rewards', total_reward)  # ------
-                result_fetcher.sample_timer('saving')  # ------
 
                 time_passed = timer.get_time()
                 print('Reward:', total_reward, 'Steps:', t, 't:',
@@ -103,12 +103,12 @@ def run(episodes=[10000], collecting_data=True):
                 else:
                     if i % 100 == 0:
                         result_fetcher.async_save()
+                result_fetcher.sample_timer('saving')  # ------
                 break
     # end of episodes
     if collecting_data:
         result_fetcher.async_save()
 
-    result_fetcher.print_times()
     result_fetcher.print_times(groups=['run_'])
     result_fetcher.print_times(groups=['agent_'], total_time_field='count')
 

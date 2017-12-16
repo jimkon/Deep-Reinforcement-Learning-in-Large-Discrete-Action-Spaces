@@ -45,8 +45,10 @@ class Fulldata:
         for f in names:
             self.add_timer(prefix + f, one_hot)
 
-    def start_timer(self, name):
-        self.timers[name].reset()
+    def start_timer(self, field_name):
+        fields = self.get_keys(field_name)
+        for f in fields:
+            self.timers[f].reset()
 
     def sample_timer(self, field_name):
         fields = self.get_keys(field_name)
