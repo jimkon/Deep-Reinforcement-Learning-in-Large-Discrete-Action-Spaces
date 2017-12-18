@@ -21,7 +21,8 @@ time_now = -1
 
 def main():
     # eps = [10000, 5000, 5001, 2000, 2001, 2002]
-    eps = [205]
+    eps = [2511, 5000, 5001, 5002]
+    # eps = [20]
     for i in eps:
         run(episodes=i,
             collecting_data=True)
@@ -39,16 +40,17 @@ def run(episodes=[10000], collecting_data=True):
 
     steps = env.spec.timestep_limit
 
-    agent = DDPGAgent(env)
-    # agent = WolpertingerAgent(env, k_nearest_neighbors=1, max_actions=1e3, data_fetch=result_fetcher)
+    # agent = DDPGAgent(env)
+    agent = WolpertingerAgent(env, k_nearest_neighbors=1,
+                              max_actions=1e3)
     # agent.load_expierience()
     # exit()
     # agent = DiscreteRandomAgent(env)
 
     # file_name = "results/data_" + agent.get_name() + str(episodes) + ".txt"
-    file_name = "results/data_" + agent.get_name() + str(episodes)
+    file_name = "data_" + agent.get_name() + str(episodes)
     result_fetcher = Fulldata(file_name)
-    result_fetcher.add_arrays(['rewards', 'count'])
+    result_fetcher.add_arrays(['rewards', 'count', 'actions'])
     result_fetcher.add_timers(['render', 'act', 'step', 'saving'], 'run_')
     result_fetcher.add_timer('run_observe', one_hot=False)
     agent.add_data_fetch(result_fetcher)
@@ -69,6 +71,7 @@ def run(episodes=[10000], collecting_data=True):
             result_fetcher.sample_timer('render')  # ------
 
             action = agent.act(observation)
+            result_fetcher.add_to_array('actions', action)  # -------
             result_fetcher.sample_timer('act')  # ------
 
             prev_observation = observation
@@ -101,8 +104,9 @@ def run(episodes=[10000], collecting_data=True):
                     # save_episode(episode_history)
                     pass
                 else:
-                    if i % 100 == 0:
-                        result_fetcher.async_save()
+                    pass
+                    # if i % 100 == 0:
+                    # result_fetcher.async_save()
                 result_fetcher.sample_timer('saving')  # ------
                 break
     # end of episodes
