@@ -125,7 +125,7 @@ class DDPGAgent(Agent):
         self.data_fetch = df
         self.data_fetch.add_timers(['ev_p_t', 'ev_q_t', 'y',
                                     'train_q', 'train_p',
-                                    'up_q_t', 'up_p_t'], prefix='agent_training_')
+                                    'up_q_t', 'up_p_t'], prefix='t_agent_training_')
 
     def get_name(self):
         return 'DDPG' + super().get_name()

@@ -77,6 +77,9 @@ class Fulldata:
         for t in self.timers:
             self.timers[t].reset_one_hot()
 
+    def set_data(self, field_name, data):
+        self.data[field_name] = data
+
     def get_data(self, field_name):
         return self.data[field_name]
 
@@ -85,6 +88,10 @@ class Fulldata:
         keys.sort()
         for key in keys:
             print(key, self.data[key].shape, self.data[key])
+
+    def print_fields(self):
+        for k in self.get_keys():
+            print(k)
 
     def load(self, path=None):
         if path is None:
@@ -163,9 +170,30 @@ class Fulldata:
             if key in k:
                 res.append(k)
 
-        # if len(res) == 1:
-        #     return res[0]
         return res
+
+    def get_empty_clone(self):
+        res = Fulldata(self.name + '_clone')
+        res.add_arrays(self.get_keys())
+        return res
+
+
+class Agent_data(Fulldata):
+
+    def get_episodes_with_reward_greater_than(self, th):
+        return np.where(self.get_data('rewards') >= th)[0]
+
+    def find_episode(self, ep):
+        done = self.get_data('done')
+        eps = np.where(done == 1)[0]
+
+        return eps[ep - 1] if ep > 0 else 0, eps[min(ep, len(done))]
+
+    def get_full_episode(self, ep):
+        start, end = self.find_episode(ep)
+        clone = self.get_empty_clone()
+        # for key in self.get_keys():
+        #     clone.set_data(self.get_data(key)[start, end - 1])
 
 
 class save_fulldata(threading.Thread):
@@ -179,11 +207,10 @@ class save_fulldata(threading.Thread):
 
 
 if __name__ == '__main__':
-    import time
-    n = 20
-    fd = Fulldata(
+    n = 2511
+    fd = Agent_data(
         name='data_Wolp_betaDDPGAgent' + str(n))
 
     fd.load()
 
-    fd.print_data()
+    print(fd.find_episode(1))

@@ -22,7 +22,7 @@ time_now = -1
 def main():
     # eps = [10000, 5000, 5001, 2000, 2001, 2002]
     eps = [2511, 5000, 5001, 5002]
-    # eps = [20]
+    # eps = [4]
     for i in eps:
         run(episodes=i,
             collecting_data=True)
@@ -40,19 +40,21 @@ def run(episodes=[10000], collecting_data=True):
 
     steps = env.spec.timestep_limit
 
-    # agent = DDPGAgent(env)
-    agent = WolpertingerAgent(env, k_nearest_neighbors=1,
-                              max_actions=1e3)
+    agent = DDPGAgent(env)
+    # agent = WolpertingerAgent(env, k_nearest_neighbors=1,
+    #                           max_actions=1e3)
     # agent.load_expierience()
     # exit()
     # agent = DiscreteRandomAgent(env)
 
     # file_name = "results/data_" + agent.get_name() + str(episodes) + ".txt"
-    file_name = "data_" + agent.get_name() + str(episodes)
+    file_name = "data__" + agent.get_name() + str(episodes)
+    print(file_name)
     result_fetcher = Fulldata(file_name)
-    result_fetcher.add_arrays(['rewards', 'count', 'actions'])
+    result_fetcher.add_arrays(['rewards', 'count', 'actions', 'done'])
+    result_fetcher.add_arrays(['state_' + str(i) for i in range(agent.observation_space_size)])
     result_fetcher.add_timers(['render', 'act', 'step', 'saving'], 'run_')
-    result_fetcher.add_timer('run_observe', one_hot=False)
+    result_fetcher.add_timer('t_run_observe', one_hot=False)
     agent.add_data_fetch(result_fetcher)
 
     timer = Timer()
@@ -60,6 +62,9 @@ def run(episodes=[10000], collecting_data=True):
     for i in range(episodes):
         timer.reset()
         observation = env.reset()
+        # for i in range(agent.observation_space_size):
+        #     result_fetcher.add_to_array('state_' + str(i), observation[i])
+
         total_reward = 0
         print('Episode ', i, '/', episodes - 1, 'started', end='... ')
         for t in range(steps):
@@ -75,7 +80,10 @@ def run(episodes=[10000], collecting_data=True):
             result_fetcher.sample_timer('act')  # ------
 
             prev_observation = observation
+            for i in range(agent.observation_space_size):
+                result_fetcher.add_to_array('state_' + str(i), observation[i])
             observation, reward, done, info = env.step(action)
+
             episode = {'obs': prev_observation,
                        'action': action,
                        'reward': reward,
@@ -92,6 +100,7 @@ def run(episodes=[10000], collecting_data=True):
             result_fetcher.sample_timer('observe')  # ------
 
             total_reward += reward
+            result_fetcher.add_to_array('done', 1 if done else 0)
             if done or (t == steps - 1):
                 t += 1
                 result_fetcher.add_to_array('rewards', total_reward)  # ------
@@ -110,8 +119,9 @@ def run(episodes=[10000], collecting_data=True):
                 result_fetcher.sample_timer('saving')  # ------
                 break
     # end of episodes
-    if collecting_data:
-        result_fetcher.async_save()
+
+    result_fetcher.async_save()
+    result_fetcher.print_data()
 
     result_fetcher.print_times(groups=['run_'])
     result_fetcher.print_times(groups=['agent_'], total_time_field='count')
