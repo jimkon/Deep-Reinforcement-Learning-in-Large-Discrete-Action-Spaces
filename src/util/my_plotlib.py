@@ -58,5 +58,5 @@ def plot_lines(lines, seps=None):
 
     for s in seps:
         plt.plot([s - 0.001, s + 0.001], [min_y, max_y], 'r', linewidth=0.5)
-        print(s)
+
     plt.show()
