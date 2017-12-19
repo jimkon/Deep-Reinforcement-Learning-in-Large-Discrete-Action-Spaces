@@ -41,15 +41,19 @@ def run(episodes=[10000], collecting_data=True):
     steps = env.spec.timestep_limit
 
     agent = DDPGAgent(env)
+
     # agent = WolpertingerAgent(env, k_nearest_neighbors=1,
     #                           max_actions=1e3)
+
 
     # file_name = "results/data_" + agent.get_name() + str(episodes) + ".txt"
     file_name = "data_" + agent.get_name() + str(episodes)
     print(file_name)
     result_fetcher = Fulldata(file_name)
+
     result_fetcher.add_arrays(['rewards', 'count', 'actions', 'done'])
     result_fetcher.add_arrays(['state_' + str(i) for i in range(agent.observation_space_size)])
+
     result_fetcher.add_timers(['render', 'act', 'step', 'saving'], 'run_')
     result_fetcher.add_timer('t_run_observe', one_hot=False)
     agent.add_data_fetch(result_fetcher)
@@ -73,7 +77,9 @@ def run(episodes=[10000], collecting_data=True):
             result_fetcher.sample_timer('render')  # ------
 
             action = agent.act(observation)
+
             result_fetcher.add_to_array('actions', action)  # -------
+
             result_fetcher.sample_timer('act')  # ------
 
             for i in range(agent.observation_space_size):
