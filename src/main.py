@@ -43,12 +43,9 @@ def run(episodes=[10000], collecting_data=True):
     agent = DDPGAgent(env)
     # agent = WolpertingerAgent(env, k_nearest_neighbors=1,
     #                           max_actions=1e3)
-    # agent.load_expierience()
-    # exit()
-    # agent = DiscreteRandomAgent(env)
 
     # file_name = "results/data_" + agent.get_name() + str(episodes) + ".txt"
-    file_name = "data__" + agent.get_name() + str(episodes)
+    file_name = "data_" + agent.get_name() + str(episodes)
     print(file_name)
     result_fetcher = Fulldata(file_name)
     result_fetcher.add_arrays(['rewards', 'count', 'actions', 'done'])
@@ -79,9 +76,9 @@ def run(episodes=[10000], collecting_data=True):
             result_fetcher.add_to_array('actions', action)  # -------
             result_fetcher.sample_timer('act')  # ------
 
-            prev_observation = observation
             for i in range(agent.observation_space_size):
                 result_fetcher.add_to_array('state_' + str(i), observation[i])
+            prev_observation = observation
             observation, reward, done, info = env.step(action)
 
             episode = {'obs': prev_observation,

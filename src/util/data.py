@@ -178,24 +178,6 @@ class Fulldata:
         return res
 
 
-class Agent_data(Fulldata):
-
-    def get_episodes_with_reward_greater_than(self, th):
-        return np.where(self.get_data('rewards') >= th)[0]
-
-    def find_episode(self, ep):
-        done = self.get_data('done')
-        eps = np.where(done == 1)[0]
-
-        return eps[ep - 1] if ep > 0 else 0, eps[min(ep, len(done))]
-
-    def get_full_episode(self, ep):
-        start, end = self.find_episode(ep)
-        clone = self.get_empty_clone()
-        # for key in self.get_keys():
-        #     clone.set_data(self.get_data(key)[start, end - 1])
-
-
 class save_fulldata(threading.Thread):
     def __init__(self, fd):
         threading.Thread.__init__(self)
