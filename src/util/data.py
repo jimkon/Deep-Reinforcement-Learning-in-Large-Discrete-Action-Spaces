@@ -1,12 +1,15 @@
 import numpy as np
 import threading
+import pickle
 from timer import *
 
 
 def save_dictionary(dict, path):
-    f = open(path, 'w+')
-    f.write(str(dict).replace(", \'", ',\n\'').replace('{', '{\n'))
-    f.close()
+    with open('results/obj/' + path + '.pkl', 'wb') as f:
+        pickle.dump(dict, f, 0)
+    # f = open(path, 'w+')
+    # f.write(str(dict).replace(", \'", ',\n\'').replace('{', '{\n'))
+    # f.close()
     # with open(path, 'w+') as f:
     #     f.write(str(dict).replace(", \'", ',\n\'').replace('{', '{\n'))
 
@@ -31,10 +34,13 @@ class Fulldata:
         for f in fields:
             self.add_array(prefix + f)
 
-    def add_to_array(self, field_name, value):
-        fields = self.get_keys(field_name)
-        for f in fields:
-            self.data[f] = np.append(self.data[f], value)
+    def add_to_array(self, field_name, value, abs_name=False):
+        if abs_name:
+            self.data[field_name] = np.append(self.data[field_name], value)
+        else:
+            fields = self.get_keys(field_name)
+            for f in fields:
+                self.data[f] = np.append(self.data[f], value)
 
     def add_timer(self, field_name, one_hot=True):
         self._add(field_name, True, one_hot)
@@ -50,10 +56,16 @@ class Fulldata:
         for f in fields:
             self.timers[f].reset()
 
-    def sample_timer(self, field_name):
-        fields = self.get_keys(field_name)
-        for f in fields:
-            self.data[f] = np.append(self.data[f], self.timers[f].get_time())
+    def sample_timer(self, field_name, abs_name=False):
+        if abs_name:
+            self.data[field_name] = np.append(
+                self.data[field_name], self.timers[field_name].get_time())
+        else:
+            fields = self.get_keys(field_name)
+            timer_keys = self.timers.keys()
+            for f in fields:
+                if f in timer_keys:
+                    self.data[f] = np.append(self.data[f], self.timers[f].get_time())
 
         self.reset_timers_one_hot()
 
@@ -65,6 +77,9 @@ class Fulldata:
         for t in self.timers:
             self.timers[t].reset_one_hot()
 
+    def set_data(self, field_name, data):
+        self.data[field_name] = data
+
     def get_data(self, field_name):
         return self.data[field_name]
 
@@ -74,12 +89,20 @@ class Fulldata:
         for key in keys:
             print(key, self.data[key].shape, self.data[key])
 
+    def print_fields(self):
+        for k in self.get_keys():
+            print(k)
+
     def load(self, path=None):
-        from numpy import array
         if path is None:
             path = self.name
-        with open(self.name, 'r') as f:
-            self.data = eval(f.read())
+        with open('results/obj/' + path + '.pkl', 'rb') as f:
+            self.data = pickle.load(f)
+        # from numpy import array
+        # if path is None:
+        #     path = self.name
+        # with open(self.name, 'r') as f:
+        #     self.data = eval(f.read())
             # print(self.data)
 
     def async_save(self):
@@ -147,8 +170,11 @@ class Fulldata:
             if key in k:
                 res.append(k)
 
-        # if len(res) == 1:
-        #     return res[0]
+        return res
+
+    def get_empty_clone(self):
+        res = Fulldata(self.name + '_clone')
+        res.add_arrays(self.get_keys())
         return res
 
 
@@ -163,32 +189,10 @@ class save_fulldata(threading.Thread):
 
 
 if __name__ == '__main__':
-    import time
+    n = 2511
+    fd = Agent_data(
+        name='data_Wolp_betaDDPGAgent' + str(n))
 
-    fd = Fulldata(
-        name='/home/jim/Desktop/dip/Deep-Reinforcement-Learning-in-Large-Discrete-Action-Spaces/src/util/default_name')
-    fd.add_array('array_1')
-    fd.add_timers(['timer_1', 'timer_2'], one_hot=True)
-    for i in range(10):
-        fd.add_to_array('array_1', i)
-    fd.add_array('array_2')
-    for i in range(10):
-        fd.add_to_array('array_2', i)
-    fd.add_array('array_3')
-    for i in range(20):
-        fd.add_to_array('array_3', i)
+    fd.load()
 
-    fd.add_to_array('array', 420)
-    time.sleep(0.5)
-
-    fd.add_timers(['timer_3', 'timer_4', 'ti'])
-    time.sleep(0.7)
-    fd.sample_timer('timer')
-    #
-    # fd.async_save()
-    #
-
-    fd.print_data()
-    # fd.load()
-    # print(fd.get_keys())
-    fd.print_times(other_keys=['array_1'], groups=['timer'])
+    print(fd.find_episode(1))

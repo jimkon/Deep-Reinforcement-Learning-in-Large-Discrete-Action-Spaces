@@ -23,15 +23,17 @@ def plot_data(data, batch_size=-1, file_name="data"):
         batch_size = 1
     batches = math.ceil(data_size / batch_size)
 
+    avg = np.average(data)
+
     final_data = np.zeros((batches, 4))
 
     for i in range(batches):
         temp = data[i * batch_size: int(min((i + 1) * batch_size, data_size))]
 
-        final_data[i] = [np.amax(temp), np.average(temp), np.amin(temp), 0]
+        final_data[i] = [np.amax(temp), np.average(temp), np.amin(temp), avg]
 
-        if not i == 0:
-            final_data[i, 3] = final_data[i, 1] - final_data[i - 1, 1]
+        # if not i == 0:
+        #     final_data[i, 3] = final_data[i, 1] - final_data[i - 1, 1]
 
     x_axis = batch_size * np.arange(0, final_data.shape[0])
 
@@ -40,9 +42,9 @@ def plot_data(data, batch_size=-1, file_name="data"):
 
     line_widths = [1, 2, 1, 0.5]
     line_colors = ['r', 'g', 'b', 'm']
-    texts = ['max', 'data', 'min', 'der']
-    for i in range(3):  # derivative out
-        if batch_size == 1 and not i == 1:
+    texts = ['max', 'data', 'min', 'avg=' + str(avg)]
+    for i in range(4):  # derivative out
+        if batch_size == 1 and ((not i == 1) or (not i == 3)):
             continue
 
         index = int((i + 5) * 0.1 * len(final_data[:, i]))
