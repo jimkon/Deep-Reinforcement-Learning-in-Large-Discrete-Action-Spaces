@@ -21,11 +21,13 @@ time_now = -1
 
 def main():
     # eps = [10000, 5000, 5001, 2000, 2001, 2002]
+
     eps = [2511, 5000, 5001, 5002]
     # eps = [4]
+
     for i in eps:
         run(episodes=i,
-            collecting_data=True)
+            collecting_data=False)
 
 
 def run(episodes=[10000], collecting_data=True):
@@ -39,6 +41,7 @@ def run(episodes=[10000], collecting_data=True):
     print(env.action_space)
 
     steps = env.spec.timestep_limit
+
 
     agent = DDPGAgent(env)
 
@@ -67,7 +70,7 @@ def run(episodes=[10000], collecting_data=True):
         #     result_fetcher.add_to_array('state_' + str(i), observation[i])
 
         total_reward = 0
-        print('Episode ', i, '/', episodes - 1, 'started', end='... ')
+        print('Episode ', i, '/', episodes - 1, 'started...', end='')
         for t in range(steps):
 
             result_fetcher.reset_timers()

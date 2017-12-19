@@ -78,13 +78,13 @@ class DiscreteRandomAgent(RandomAgent):
     def __init__(self, env, max_actions=10):
         super().__init__(env)
         if self.continious_action_space:
-            self.actions = np.linspace(self.low, self.high, max_actions)
+            self.discrete_actions = np.linspace(self.low, self.high, max_actions)
         else:
-            self.actions = np.arange(self.low, self.high)
-        self.actions = list(self.actions)
+            self.discrete_actions = np.arange(self.low, self.high)
+        self.discrete_actions = list(self.discrete_actions)
 
     def act(self, state):
-        return random.sample(self.actions, 1)[0]
+        return random.sample(self.discrete_actions, 1)[0]
 
     def get_name(self):
         return 'Discrete' + super().get_name()
@@ -245,7 +245,7 @@ class WolpertingerAgent(DDPGAgent):
         print('flann init with params->', params)
 
     def get_name(self):
-        return 'Wolp_beta' + super().get_name()
+        return 'Wolp_k=1_' + super().get_name()
 
     def act(self, state):
         proto_action = super().act(state)
