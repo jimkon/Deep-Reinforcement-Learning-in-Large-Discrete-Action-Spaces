@@ -14,7 +14,7 @@ def save_dictionary(dict, path):
     #     f.write(str(dict).replace(", \'", ',\n\'').replace('{', '{\n'))
 
 
-class Fulldata:
+class Data:
 
     def __init__(self, name='default_name'):
         self.name = name

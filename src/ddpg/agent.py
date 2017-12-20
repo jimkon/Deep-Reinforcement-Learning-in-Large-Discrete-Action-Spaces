@@ -1,7 +1,7 @@
 import random
 import numpy as np
 
-from util.timer import *
+from util import *
 
 import gym
 from gym.spaces import Box, Discrete

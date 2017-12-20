@@ -42,7 +42,7 @@ def print_actions(fd, episodes=None):
     plot_lines([line], seps)
 
 
-class Agent_data(Fulldata):
+class Agent_data(Data):
 
     def get_episodes_with_reward_greater_than(self, th):
         return np.where(self.get_data('rewards') >= th)[0]
