@@ -1,3 +1,6 @@
+import numpy as np
+import pyflann
+
 from ddpg import agent
 
 
@@ -21,7 +24,7 @@ class WolpertingerAgent(agent.DDPGAgent):
         print('flann init with params->', params)
 
     def get_name(self):
-        return 'Wolp_k=1_' + super().get_name()
+        return 'Wolp_v1_k' + str(self.k_nearest_neighbors) + '_' + super().get_name()
 
     def act(self, state):
         proto_action = super().act(state)

@@ -11,8 +11,9 @@ from util.data import Timer
 time_now = -1
 
 # eps = [10000, 5000, 5001, 2000, 2001, 2002]
-# eps = [2511, 5000, 5001, 5002]
-eps = [10]
+eps = [2511, 2512, 5001, 5002]
+# eps = [10]
+max_actions = 1e3
 
 
 def run(episodes=[10000], collecting_data=True):
@@ -27,13 +28,13 @@ def run(episodes=[10000], collecting_data=True):
 
     steps = env.spec.timestep_limit
 
-    agent = DDPGAgent(env)
+    # agent = DDPGAgent(env)
 
-    # agent = WolpertingerAgent(env, k_nearest_neighbors=1,
-    #                           max_actions=1e3)
+    agent = WolpertingerAgent(env, k_nearest_neighbors=int(0.1 * max_actions),
+                              max_actions=max_actions)
 
     # file_name = "results/data_" + agent.get_name() + str(episodes) + ".txt"
-    file_name = "data_" + agent.get_name() + str(episodes)
+    file_name = "data_" + str(episodes) + '_' + agent.get_name()
     print(file_name)
     result_fetcher = Data(file_name)
 
@@ -60,6 +61,7 @@ def run(episodes=[10000], collecting_data=True):
 
             if not collecting_data:
                 env.render()
+
             result_fetcher.sample_timer('render')  # ------
 
             action = agent.act(observation)
@@ -152,7 +154,7 @@ def save_episode(episode, overwrite=True):
 def main():
     for i in eps:
         run(episodes=i,
-            collecting_data=False)
+            collecting_data=True)
 
 
 if __name__ == '__main__':

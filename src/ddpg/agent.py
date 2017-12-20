@@ -14,8 +14,6 @@ from tensorflow_grad_inverter import grad_inverter
 
 from collections import deque
 
-import pyflann
-
 MAX_ACTION_SPACE_SIZE = 1e6
 
 
