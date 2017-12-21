@@ -83,8 +83,3 @@ class Time_stats:
 
         total_time = self.get_total()
         print('Total\t\t{}\t\t{:6.2f}\t\t 100.0'.format(total_time, total_time / count))
-
-
-if __name__ == '__main__':
-    t = Time_stats("name", ['field_1', 'field_2'])
-    t.print_stats()
