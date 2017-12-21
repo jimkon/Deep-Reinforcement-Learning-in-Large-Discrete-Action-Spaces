@@ -44,6 +44,7 @@ class WolpertingerAgent(agent.DDPGAgent):
             return self.wolp_action(state, proto_action)
 
     def wolp_action(self, state, proto_action):
+
         actions = self.nearest_neighbors(proto_action)[0]
         # print('--\nproto action', proto_action, 'state', state)
         # print('actions', actions.shape)
