@@ -6,8 +6,8 @@ import data_graph
 
 def main():
     n = 2511
-    fd = Agent_data(
-        name='data_Wolp_betaDDPGAgent' + str(n))
+    name = "data_5002_Wolp_v1_k100_DDPGAgent"
+    fd = Agent_data(name=name)
 
     fd.load()
 
@@ -15,8 +15,8 @@ def main():
 
     # fd = fd.get_full_episode_data(1)
     # fd.print_data()
-
-    print_actions(fd, [0, 1])
+    print_rewards(fd)
+    print_actions(fd)
 
 
 def print_rewards(fd):
