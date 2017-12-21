@@ -4,21 +4,6 @@ from data import *
 import data_graph
 
 
-def main():
-    n = 2511
-    name = "data_5002_Wolp_v1_k100_DDPGAgent"
-    fd = Agent_data(name=name)
-
-    fd.load()
-
-    # fd.print_data()
-
-    # fd = fd.get_full_episode_data(1)
-    # fd.print_data()
-    print_rewards(fd)
-    print_actions(fd)
-
-
 def print_rewards(fd):
     data = fd.get_data('rewards')
 

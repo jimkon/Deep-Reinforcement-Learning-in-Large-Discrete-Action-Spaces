@@ -7,13 +7,8 @@ from wolp_agent import *
 from ddpg.agent import DDPGAgent
 from util.data import Data
 from util.data import Timer
-# import util.performance_data.timer as timer
-time_now = -1
 
-# eps = [10000, 5000, 5001, 2000, 2001, 2002]
-eps = [2511, 2512, 5001, 5002]
-# eps = [10]
-max_actions = 1e3
+time_now = -1
 
 
 def run(episodes=[10000], collecting_data=True):
@@ -149,13 +144,3 @@ def save_episode(episode, overwrite=True):
                 file.write(string)
                 file.close()
                 break
-
-
-def main():
-    for i in eps:
-        run(episodes=i,
-            collecting_data=True)
-
-
-if __name__ == '__main__':
-    main()
