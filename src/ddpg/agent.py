@@ -213,11 +213,3 @@ class DDPGAgent(Agent):
         self.data_fetch.sample_timer('up_q_t')  # ------
         self.actor_net.update_target_actor()
         self.data_fetch.sample_timer('up_p_t')  # ------
-
-    def load_expierience(self, file_path='results/last_episode'):
-        from numpy import array
-
-        dicts_from_file = {}
-        with open(file_path, 'r') as inf:
-            dict_from_file = eval(inf.read())
-        print(dicts_from_file)

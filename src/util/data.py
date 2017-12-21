@@ -7,11 +7,6 @@ from timer import *
 def save_dictionary(dict, path):
     with open('results/obj/' + path + '.pkl', 'wb') as f:
         pickle.dump(dict, f, 0)
-    # f = open(path, 'w+')
-    # f.write(str(dict).replace(", \'", ',\n\'').replace('{', '{\n'))
-    # f.close()
-    # with open(path, 'w+') as f:
-    #     f.write(str(dict).replace(", \'", ',\n\'').replace('{', '{\n'))
 
 
 class Data:
@@ -98,12 +93,6 @@ class Data:
             path = self.name
         with open('results/obj/' + path + '.pkl', 'rb') as f:
             self.data = pickle.load(f)
-        # from numpy import array
-        # if path is None:
-        #     path = self.name
-        # with open(self.name, 'r') as f:
-        #     self.data = eval(f.read())
-            # print(self.data)
 
     def async_save(self):
         thread = save_fulldata(self)
@@ -186,13 +175,3 @@ class save_fulldata(threading.Thread):
 
     def run(self):
         save_dictionary(self.dict, self.path)
-
-
-if __name__ == '__main__':
-    n = 2511
-    fd = Agent_data(
-        name='data_Wolp_betaDDPGAgent' + str(n))
-
-    fd.load()
-
-    print(fd.find_episode(1))
