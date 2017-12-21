@@ -1,33 +1,19 @@
 import gym
 import numpy as np
 
-import os
-import sys
-import inspect
-# Use this if you want to include modules from a subfolder
-cmd_subfolder = os.path.realpath(os.path.abspath(os.path.join(
-    os.path.split(inspect.getfile(inspect.currentframe()))[0], "util")))
-if cmd_subfolder not in sys.path:
-    sys.path.insert(0, cmd_subfolder)
+from util import *
 
-
-from util.timer import *
-from util.data import *
-
-from agent import *
+from wolp_agent import *
+from ddpg.agent import DDPGAgent
+from util.data import Data
+from util.data import Timer
 # import util.performance_data.timer as timer
 time_now = -1
 
-
-def main():
-    # eps = [10000, 5000, 5001, 2000, 2001, 2002]
-
-    eps = [2511, 5000, 5001, 5002]
-    # eps = [4]
-
-    for i in eps:
-        run(episodes=i,
-            collecting_data=False)
+# eps = [10000, 5000, 5001, 2000, 2001, 2002]
+eps = [2511, 2512, 5001, 5002]
+# eps = [10]
+max_actions = 1e3
 
 
 def run(episodes=[10000], collecting_data=True):
@@ -42,17 +28,15 @@ def run(episodes=[10000], collecting_data=True):
 
     steps = env.spec.timestep_limit
 
+    # agent = DDPGAgent(env)
 
-    agent = DDPGAgent(env)
-
-    # agent = WolpertingerAgent(env, k_nearest_neighbors=1,
-    #                           max_actions=1e3)
-
+    agent = WolpertingerAgent(env, k_nearest_neighbors=int(0.1 * max_actions),
+                              max_actions=max_actions)
 
     # file_name = "results/data_" + agent.get_name() + str(episodes) + ".txt"
-    file_name = "data_" + agent.get_name() + str(episodes)
+    file_name = "data_" + str(episodes) + '_' + agent.get_name()
     print(file_name)
-    result_fetcher = Fulldata(file_name)
+    result_fetcher = Data(file_name)
 
     result_fetcher.add_arrays(['rewards', 'count', 'actions', 'done'])
     result_fetcher.add_arrays(['state_' + str(i) for i in range(agent.observation_space_size)])
@@ -77,6 +61,7 @@ def run(episodes=[10000], collecting_data=True):
 
             if not collecting_data:
                 env.render()
+
             result_fetcher.sample_timer('render')  # ------
 
             action = agent.act(observation)
@@ -164,6 +149,12 @@ def save_episode(episode, overwrite=True):
                 file.write(string)
                 file.close()
                 break
+
+
+def main():
+    for i in eps:
+        run(episodes=i,
+            collecting_data=True)
 
 
 if __name__ == '__main__':
