@@ -7,16 +7,11 @@ from wolp_agent import *
 from ddpg.agent import DDPGAgent
 from util.data import Data
 from util.data import Timer
-# import util.performance_data.timer as timer
+
 time_now = -1
 
-# eps = [10000, 5000, 5001, 2000, 2001, 2002]
-eps = [2511, 2512, 5001, 5002]
-# eps = [10]
-max_actions = 1e3
 
-
-def run(episodes=[10000], collecting_data=True):
+def run(episodes=[2500], collecting_data=True):
 
     experiment = ('CartPole-v1',
                   'InvertedPendulum-v1',
@@ -151,11 +146,5 @@ def save_episode(episode, overwrite=True):
                 break
 
 
-def main():
-    for i in eps:
-        run(episodes=i,
-            collecting_data=True)
-
-
 if __name__ == '__main__':
-    main()
+    run()
