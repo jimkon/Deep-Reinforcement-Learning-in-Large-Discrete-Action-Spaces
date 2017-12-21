@@ -11,7 +11,7 @@ from util.data import Timer
 time_now = -1
 
 
-def run(episodes=[10000], collecting_data=True):
+def run(episodes=[2500], collecting_data=True):
 
     experiment = ('CartPole-v1',
                   'InvertedPendulum-v1',
@@ -144,3 +144,7 @@ def save_episode(episode, overwrite=True):
                 file.write(string)
                 file.close()
                 break
+
+
+if __name__ == '__main__':
+    run()
