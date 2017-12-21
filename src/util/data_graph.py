@@ -181,12 +181,3 @@ def get_all_txt_files():
         if splitext(f)[1] in EXTENSIONS:
             txtfiles.append(mypath + "/" + f)
     return txtfiles
-
-
-if __name__ == '__main__':
-    files = set_patameters_and_get_files()
-    for f in files:
-        try:
-            plot_file(f)
-        except ValueError as e:
-            print(e)
