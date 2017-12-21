@@ -54,7 +54,3 @@ class Agent_data(Data):
         r = self.get_data('rewards')[ep]
         clone.set_data('rewards', np.array([r]))
         return clone
-
-
-if __name__ == '__main__':
-    main()
