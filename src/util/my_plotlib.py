@@ -64,7 +64,8 @@ def plot_lines(lines, seps=None, grid_flag=True):
     min_y = np.amin(min_y)
     max_y = np.amax(max_y)
 
-    for s in seps:
-        plt.plot([s - 0.001, s + 0.001], [min_y, max_y], 'r', linewidth=0.5)
+    if seps is not None:
+        for s in seps:
+            plt.plot([s - 0.001, s + 0.001], [min_y, max_y], 'r', linewidth=0.5)
 
     plt.show()
