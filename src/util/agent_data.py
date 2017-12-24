@@ -2,6 +2,21 @@ import numpy as np
 from my_plotlib import *
 from data import *
 import data_graph
+import gym
+from gym.spaces import Box, Discrete
+
+
+def get_action_space(env):
+    low = 0
+    high = 0
+    if isinstance(env.action_space, Box):
+        low = env.action_space.low[0]
+        high = env.action_space.high[0]
+    else:
+        low = 0
+        high = env.action_space.n
+
+    return low, high
 
 
 def print_rewards(fd):
@@ -10,7 +25,9 @@ def print_rewards(fd):
     data_graph.plot_data(data, batch_size=-1, file_name='rewards')
 
 
-def print_actions(fd, episodes=None):
+def print_actions(fd, episodes=None, action_space=None):
+    lines = []
+
     data = []
     seps = []
     if episodes is None:
@@ -23,8 +40,11 @@ def print_actions(fd, episodes=None):
     if len(seps) == 1:
         seps = []
     x = np.arange(len(data))
-    line = Line(x, data)
-    plot_lines([line], seps)
+    if action_space is not None:
+        lines.extend((Constant(x, k, line_color='#a0a0a0') for k in action_space))
+
+    lines.append(Line(x, data, line_color='-o'))
+    plot_lines(lines, seps, grid_flag=action_space is None)
 
 
 class Agent_data(Data):
