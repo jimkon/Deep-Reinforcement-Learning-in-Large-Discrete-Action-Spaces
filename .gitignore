@@ -9,6 +9,7 @@ __pycache__
 
 # .py files
 clipboard.py
+example.py
 
 # .pyc files
 *.pyc

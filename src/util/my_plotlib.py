@@ -3,12 +3,13 @@ import matplotlib.pyplot as plt
 
 
 class Line:
-    def __init__(self, x, y, line_width=1, line_color='black', text=''):
+    def __init__(self, x, y, line_width=1, line_color='black', text='', style='-'):
         self.x = x
         self.y = y
         self.width = line_width
         self.color = line_color
         self.text = text
+        self.style = style
 
     def plot(self, fig=None, k=2):
         if fig is None:
@@ -17,12 +18,11 @@ class Line:
             plt.ylabel("y")
             plt.xlabel("x")
 
-        line = self
         max_y, min_y = self.y_range()
 
-        plt.plot(line.x, line.y, line.color, linewidth=line.width)
-        plt.text(0.05 * len(line.y), k * 0.1 * (max_y - min_y),
-                 line.text, color=line.color)
+        plt.plot(self.x, self.y, self.color, linewidth=self.width, linestyle=self.style)
+        plt.text(0.05 * len(self.y), k * 0.1 * (max_y - min_y),
+                 self.text, color=self.color)
 
         if fig is None:
             plt.show()
@@ -33,14 +33,22 @@ class Line:
 
 class Function(Line):
 
-    def __init__(self, x, func, line_width=1, line_color='black', text=''):
+    def __init__(self, x, func, line_width=1, line_color='black', text='', style='-'):
         y = [func(i) for i in x]
-        super().__init__(x, y, line_width, line_color, text)
+        super().__init__(x, y, line_width, line_color, text, style)
 
 
-def plot_lines(lines, seps=None):
+class Constant(Line):
+
+    def __init__(self, x, c, line_width=1, line_color='black', text='', style='-'):
+        x = [x[0], x[len(x) - 1]]
+        y = [c] * len(x)
+        super().__init__(x, y, line_width, line_color, text, style)
+
+
+def plot_lines(lines, seps=None, grid_flag=True):
     fig = plt.figure()
-    plt.grid(True)
+    plt.grid(grid_flag)
     plt.ylabel("y")
     plt.xlabel("x")
     max_y = []
