@@ -19,13 +19,13 @@ def get_action_space(env):
     return low, high
 
 
-def print_rewards(fd):
+def plot_rewards(fd):
     data = fd.get_data('rewards')
 
     data_graph.plot_data(data, batch_size=-1, file_name='rewards')
 
 
-def print_actions(fd, episodes=None, action_space=None):
+def plot_actions(fd, episodes=None, action_space=None):
     lines = []
 
     data = []
