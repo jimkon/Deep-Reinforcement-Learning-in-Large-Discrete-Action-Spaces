@@ -14,14 +14,10 @@ class WolpertingerAgent(agent.DDPGAgent):
             self.actions = np.arange(self.low, self.high)
         # self.actions = list(self.actions)
         self.k_nearest_neighbors = k_nearest_neighbors
-        print('wolpertinger agent init')
-        print('max actions = ', max_actions)
-        print('k nearest neighbors =', k_nearest_neighbors)
         # init flann
         self.actions.shape = (len(self.actions), self.action_space_size)
         self.flann = pyflann.FLANN()
         params = self.flann.build_index(self.actions, algorithm='kdtree')
-        print('flann init with params->', params)
 
     def get_name(self):
         return 'Wolp_v1_k' + str(self.k_nearest_neighbors) + '_' + super().get_name()
