@@ -107,7 +107,7 @@ def run(episodes=[2500], collecting_data=True):
     # end of episodes
 
     result_fetcher.async_save()
-    result_fetcher.print_data()
+    # result_fetcher.print_data()
 
     result_fetcher.print_times(groups=['run_'])
     result_fetcher.print_times(groups=['agent_'], total_time_field='count')
