@@ -32,30 +32,37 @@ class WolpertingerAgent(agent.DDPGAgent):
             return proto_action
 
         if len(proto_action) > 1:
-            # print('\n\n\nproto action shape', proto_action.shape)
+            return 0
             res = np.array([])
             for i in range(len(proto_action)):
                 res = np.append(res, self.wolp_action(state[i], proto_action[i]))
             res.shape = (len(res), 1)
-            # print(res)
-            # print(res.shape)
             return res
         else:
             return self.wolp_action(state, proto_action)
 
     def wolp_action(self, state, proto_action):
-
+        debug = False
         actions = self.nearest_neighbors(proto_action)[0]
-        # print('--\nproto action', proto_action, 'state', state)
-        # print('actions', actions.shape)
+        if debug:
+            print('--\nproto action', proto_action, 'state', state)
         states = np.tile(state, [len(actions), 1])
-        # print('states', states.shape)
         actions_evaluation = self.critic_net.evaluate_critic(states, actions)
-        # print('action evalueations', actions_evaluation.shape)
+        if debug:
+            print('action evalueations', actions_evaluation.shape)
+        if debug:
+            for i in range(len(actions)):
+                print(actions[i], 'v', actions_evaluation[i])
+
         max_index = np.argmax(actions_evaluation)
         max = actions_evaluation[max_index]
-        # print('max', max, '->', max_index)
-        return max
+        if debug:
+            print('max', max, '->', max_index)
+        if debug:
+            print('result action', actions[max_index])
+        # if debug:
+        #     exit()
+        return actions[max_index]
 
     def nearest_neighbors(self, proto_action):
         results, dists = self.flann.nn_index(

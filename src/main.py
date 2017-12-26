@@ -24,7 +24,7 @@ def run(episodes=[2500], collecting_data=True):
     steps = env.spec.timestep_limit
 
     # agent = DDPGAgent(env)
-    max_actions = 1e3
+    max_actions = 1e2
     agent = WolpertingerAgent(env, k_nearest_neighbors=int(0.1 * max_actions),
                               max_actions=max_actions)
 
@@ -107,7 +107,7 @@ def run(episodes=[2500], collecting_data=True):
     # end of episodes
 
     result_fetcher.async_save()
-    result_fetcher.print_data()
+    # result_fetcher.print_data()
 
     result_fetcher.print_times(groups=['run_'])
     result_fetcher.print_times(groups=['agent_'], total_time_field='count')
