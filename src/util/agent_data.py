@@ -47,6 +47,45 @@ def plot_actions(fd, episodes=None, action_space=None):
     plot_lines(lines, seps, grid_flag=action_space is None)
 
 
+def plot_states(fd, episodes=None):
+    lines = []
+
+    data = {'s0': [],
+            's1': [],
+            's2': [],
+            's3': [],
+            'actions': []}
+    seps = []
+    if episodes is None:
+        data['s0'] = fd.get_data('state_0')
+        data['s1'] = fd.get_data('state_1')
+        data['s2'] = fd.get_data('state_2')
+        data['s3'] = fd.get_data('state_3')
+        data['actions'] = fd.get_data('actions')
+    else:
+        for ep in episodes:
+            data['s0'].extend(fd.get_episode_data('state_0', ep))
+            data['s1'].extend(fd.get_episode_data('state_1', ep))
+            data['s2'].extend(fd.get_episode_data('state_2', ep))
+            data['s3'].extend(fd.get_episode_data('state_3', ep))
+            data['actions'].extend(fd.get_episode_data('actions', ep))
+            seps.append(len(data) - 0.5)
+
+    if len(seps) == 1:
+        seps = []
+    x = np.arange(len(data['s0']))
+
+    # print(data['s0'])
+
+    lines.append(Line(x, data['s0'], line_color='b', text='s0'))
+    lines.append(Line(x, data['s1'], line_color='g', text='s1'))
+    lines.append(Line(x, data['s2'], line_color='r', text='s2'))
+    lines.append(Line(x, data['s3'], line_color='m', text='s3'))
+    lines.append(Line(x, data['actions'], line_color='black', text='actions', style=':'))
+
+    plot_lines(lines, seps)
+
+
 class Agent_data(Data):
 
     def get_episodes_with_reward_greater_than(self, th):
