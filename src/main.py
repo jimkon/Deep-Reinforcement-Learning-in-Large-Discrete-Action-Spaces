@@ -1,4 +1,5 @@
 import gym
+
 import numpy as np
 
 from util import *
@@ -11,11 +12,8 @@ from util.data import Timer
 time_now = -1
 
 
-def run(episodes=[2500], collecting_data=True):
+def run(episodes=[2500], collecting_data=True, experiment='InvertedPendulum-v1'):
 
-    experiment = ('CartPole-v1',
-                  'InvertedPendulum-v1',
-                  'LunarLanderContinuous-v2')[1]
     env = gym.make(experiment)
 
     print(env.observation_space)
@@ -24,9 +22,7 @@ def run(episodes=[2500], collecting_data=True):
     steps = env.spec.timestep_limit
 
     # agent = DDPGAgent(env)
-    max_actions = 1e2
-    agent = WolpertingerAgent(env, k_nearest_neighbors=int(0.1 * max_actions),
-                              max_actions=max_actions)
+    agent = WolpertingerAgent(env, max_actions=1e2)
 
     # file_name = "results/data_" + agent.get_name() + str(episodes) + ".txt"
     file_name = "data_" + str(episodes) + '_' + agent.get_name()
