@@ -1,9 +1,11 @@
 import numpy as np
 from my_plotlib import *
 from data import *
+import math
 import data_graph
 import gym
 from gym.spaces import Box, Discrete
+
 
 
 def get_action_space(env):
@@ -75,8 +77,6 @@ def plot_states(fd, episodes=None):
         seps = []
     x = np.arange(len(data['s0']))
 
-    # print(data['s0'])
-
     lines.append(Line(x, data['s0'], line_color='b', text='s0'))
     lines.append(Line(x, data['s1'], line_color='g', text='s1'))
     lines.append(Line(x, data['s2'], line_color='r', text='s2'))
@@ -85,6 +85,31 @@ def plot_states(fd, episodes=None):
 
     plot_lines(lines, seps)
 
+def plot_reward_3d(fd, batch_size_ratio = 0.01):
+    data = fd.get_data('rewards')
+    batch_size = math.ceil(batch_size_ratio*len(data))
+    print(len(data), batch_size)
+    assert batch_size>0, "int(batch_size*len(data)) has must be > 0"
+    Z = add_y_dimension(data, batch_size)*#????
+    X = np.arange(Z.shape[1])
+    Y = np.arange(Z.shape[0])
+    data_graph.plot_surface(X, Y, Z)
+
+def add_y_dimension(data, batch_size):
+    max_value = 1001
+    min_value = 0
+    batches = list(data_graph.break_into_batches(data, batch_size))
+    z = np.zeros(shape=(max_value-min_value, len(batches)))
+    count = 0
+    for batch in batches:
+        for num in batch:
+            z[int(num)][count] +=1
+        count += 1
+    print(z.shape)
+    print(z)
+
+    # exit()
+    return z
 
 class Agent_data(Data):
 

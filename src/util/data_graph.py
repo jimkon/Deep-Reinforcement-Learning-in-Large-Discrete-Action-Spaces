@@ -21,36 +21,38 @@ def plot_data(data, batch_size=-1, file_name="data"):
         batch_size = max(int(data_size * BATCH_RATIO), 1)
     if BATCH_RATIO == 1:
         batch_size = 1
-    batches = math.ceil(data_size / batch_size)
+    number_of_batches = math.ceil(data_size / batch_size)
 
     avg = np.average(data)
 
-    final_data = np.zeros((batches, 4))
+    batches = break_into_batches(data, batch_size)
+    final_data = []
 
-    for i in range(batches):
-        temp = data[i * batch_size: int(min((i + 1) * batch_size, data_size))]
+    for batch in batches:
+        final_data.append([np.amax(batch), np.average(batch), np.amin(batch)])
 
-        final_data[i] = [np.amax(temp), np.average(temp), np.amin(temp), avg]
-
-        # if not i == 0:
-        #     final_data[i, 3] = final_data[i, 1] - final_data[i - 1, 1]
-
-    x_axis = batch_size * np.arange(0, final_data.shape[0])
+    x_axis = batch_size * np.arange(0, len(final_data))
 
     plt.figure()
     plt.subplot(211)
 
-    line_widths = [1, 2, 1, 0.5]
-    line_colors = ['r', 'g', 'b', 'm']
-    texts = ['max', 'data', 'min', 'avg=' + str(avg)]
-    for i in range(4):  # derivative out
-        if batch_size == 1 and ((not i == 1) or (not i == 3)):
+    line_widths = [1, 2, 1]
+    line_colors = ['r', 'g', 'b']
+    texts = ['max', 'data', 'min']
+    max_value = np.amax(final_data)
+    for i in range(3):  # derivative out
+        if batch_size == 1 and not i == 1:
             continue
 
-        index = int((i + 5) * 0.1 * len(final_data[:, i]))
-        plt.plot(x_axis, final_data[:, i], line_colors[i], linewidth=line_widths[i])
-        plt.text(0.05 * len(final_data[:, i]), (i + 1) * 0.1 * np.amax(final_data[:, 0]),
+        index = int((i + 5) * 0.1 * len(final_data))
+        y_axis = [item[i] for item in final_data]
+        plt.plot(x_axis, y_axis, line_colors[i], linewidth=line_widths[i])
+        plt.text(0.05 * len(final_data), (i + 1) * 0.1 * max_value,
                  texts[i], color=line_colors[i])
+
+    plt.plot([x_axis[0], x_axis[len(x_axis)-1]], [avg]*2, 'm', linewidth=0.5)
+    plt.text(0.05 * len(final_data), (4) * 0.1 * max_value,
+              'avg=' + str(avg), color='m')
 
         # plt.annotate(texts[i],  xy=(x_axis[index], final_data[index, i]),
         #              xytext=(x_axis[index], final_data[index, i] + int(np.amax(final_data) * 0.4)),
@@ -91,9 +93,9 @@ def plot_data(data, batch_size=-1, file_name="data"):
 
     plt.show()
 
+
+
 # unstested
-
-
 def plot_surface(X, Y, Z):
     from mpl_toolkits.mplot3d import Axes3D
     import matplotlib.pyplot as plt
@@ -104,11 +106,13 @@ def plot_surface(X, Y, Z):
     fig = plt.figure(figsize=plt.figaspect(0.5))
     ax = fig.add_subplot(1, 2, 1)
 
+    X, Y = np.meshgrid(X, Y)
     t = plt.imshow(Z)
 
     t.set_cmap(cm.coolwarm)
     plt.colorbar()
     ax = fig.add_subplot(1, 2, 2, projection='3d')
+
     # Plot the surface.
     surf = ax.plot_surface(X, Y, Z, cmap=cm.coolwarm,
                            linewidth=0, antialiased=False)
@@ -117,6 +121,12 @@ def plot_surface(X, Y, Z):
     plt.tight_layout()
     plt.show()
 
+
+
+def break_into_batches(data, batch_size):
+    size = len(data)
+    for i in range(math.ceil(size/batch_size)):
+        yield data[i*batch_size:(i+1)*batch_size]
 
 def ignore_starting_rewards(data, threshold=200):
     index = 0
