@@ -17,6 +17,8 @@ class Data:
         self.timers = {}
 
     def _add(self, field_name, timer, timer_one_hot=True):
+        if field_name in self.data.keys():
+            return
         self.data[field_name] = np.array([])
         if timer:
             self.timers[field_name] = Timer(timer_one_hot)
@@ -114,7 +116,7 @@ class Data:
                             final_keys.append(t)
 
         if (final_keys is None) or (len(final_keys) == 0):
-            print("No items found to be printed")
+            print("data.Data.print_times: No items found to be printed")
             return
 
         times = {}
