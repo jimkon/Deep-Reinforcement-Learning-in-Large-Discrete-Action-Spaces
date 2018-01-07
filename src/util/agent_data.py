@@ -84,7 +84,7 @@ def plot_actions_statistics(fd):
 
     data = fd.get_data('actions')
     y, x = np.histogram(data, bins='auto', density=False)
-    print(len(y))
+
     total = np.sum(y)
     y = np.sort(y)[::-1]
     y = y / total
@@ -175,6 +175,12 @@ def add_y_dimension(data, batch_size):
 
 class Agent_data(Data):
 
+    def add_field_to_old_version(self, field, value):
+        self.load()
+        self.add_array(field)
+        self.add_to_array(field, value)
+        self.async_save()
+
     def get_episodes_with_reward_greater_than(self, th):
         return np.where(self.get_data('rewards') >= th)[0]
 
@@ -216,3 +222,25 @@ class Agent_data(Data):
         first_increase = self.get_episodes_with_reward_greater_than(reward_threshold)[0]
         adaption_time = len(self.get_episodes_data('actions', np.arange(first_increase)))
         return adaption_time
+
+    # works only for one dimension action space
+    def get_actions_histogram(self):
+        action_space = np.array(self.get_data('action_space'))
+        data = self.get_data('actions')
+
+        min_action = action_space[0]
+        max_action = action_space[len(action_space) - 1]
+        hist = np.zeros(action_space.shape)
+
+        for i in data:
+            index = int(np.interp(i, [min_action, max_action], [0, len(hist) - 1]))
+            hist[index] += 1
+
+        return hist, action_space
+
+    def get_perc_of_unique_actions_used(self, used_more_than=1):
+        hist, _ = self.get_actions_histogram()
+
+        unique = len(np.where(hist >= used_more_than)[0])
+
+        return unique / len(hist)
