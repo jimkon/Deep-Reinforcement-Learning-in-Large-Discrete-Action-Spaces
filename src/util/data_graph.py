@@ -5,8 +5,8 @@ import ntpath
 
 BATCH_RATIO = 0.01
 EXTENSIONS = ['.txt']
-DIRECTORY = "/../../results"
-# DIRECTORY = "/../../data/saved_ddpg_new"
+# DIRECTORY = "/home/jim/Desktop/dip/Deep-Reinforcement-Learning-in-Large-Discrete-Action-Spaces/data/saved_ddpg"
+DIRECTORY = "/../../data/saved__"
 
 
 def plot_file(file_name):
@@ -46,23 +46,25 @@ def plot_data(data, batch_size=-1, file_name="data"):
 
         index = int((i + 5) * 0.1 * len(final_data))
         y_axis = [item[i] for item in final_data]
-        plt.plot(x_axis, y_axis, line_colors[i], linewidth=line_widths[i])
-        plt.text(0.05 * len(final_data), (i + 1) * 0.1 * max_value,
-                 texts[i], color=line_colors[i])
+        plt.plot(x_axis, y_axis, line_colors[i], linewidth=line_widths[i], label=texts[i])
+        # plt.text(0.05 * len(final_data), (i + 1) * 0.1 * max_value,
+        #          texts[i], color=line_colors[i])
 
-    plt.plot([x_axis[0], x_axis[len(x_axis)-1]], [avg]*2, 'm', linewidth=0.5)
-    plt.text(0.05 * len(final_data), (4) * 0.1 * max_value,
-              'avg=' + str(avg), color='m')
+    plt.plot([x_axis[0], x_axis[len(x_axis) - 1]], [avg] *
+             2, 'm', linewidth=0.5, label='avg=' + str(avg))
+    # plt.text(0.05 * len(final_data), (4) * 0.1 * max_value,
+    #          'avg=' + str(avg), color='m')
 
-        # plt.annotate(texts[i],  xy=(x_axis[index], final_data[index, i]),
-        #              xytext=(x_axis[index], final_data[index, i] + int(np.amax(final_data) * 0.4)),
-        #              arrowprops=dict(facecolor=line_colors[i], shrink=0.05))
+    # plt.annotate(texts[i],  xy=(x_axis[index], final_data[index, i]),
+    #              xytext=(x_axis[index], final_data[index, i] + int(np.amax(final_data) * 0.4)),
+    #              arrowprops=dict(facecolor=line_colors[i], shrink=0.05))
 
     # plt.plot(x_axis, final_data[:, 0], 'r', linewidth = 1)
     # plt.plot(x_axis, final_data[:, 1], 'g')
     # plt.plot(x_axis, final_data[:, 2], 'b', linewidth = 1)
     # plt.plot(x_axis, final_data[:, 3], 'm--', linewidth = 0.5)
 
+    plt.legend()
     plt.grid(True)
     plt.title(ntpath.basename(file_name) + "(" + str(batch_size) + " batch size)")
     plt.ylabel("Reward")
@@ -88,11 +90,10 @@ def plot_data(data, batch_size=-1, file_name="data"):
     plt.grid(True)
     # plt.title("Statistics histogram")
     # plt.ylabel("%(ign "+ str(round(100*ignored/len(data)))+ '%)')
-    plt.ylabel("Samples")
+    plt.ylabel("Distribution")
     plt.xlabel("Value")
 
     plt.show()
-
 
 
 # unstested
@@ -122,11 +123,11 @@ def plot_surface(X, Y, Z):
     plt.show()
 
 
-
 def break_into_batches(data, batch_size):
     size = len(data)
-    for i in range(math.ceil(size/batch_size)):
-        yield data[i*batch_size:(i+1)*batch_size]
+    for i in range(math.ceil(size / batch_size)):
+        yield data[i * batch_size:(i + 1) * batch_size]
+
 
 def ignore_starting_rewards(data, threshold=200):
     index = 0
@@ -185,9 +186,15 @@ def get_all_txt_files():
     from os.path import isfile, join, dirname, realpath, splitext
 
     mypath = dirname(realpath(__file__)) + DIRECTORY
+    # mypath = DIRECTORY
     onlyfiles = [f for f in listdir(mypath) if isfile(join(mypath, f))]
     txtfiles = []
     for f in onlyfiles:
         if splitext(f)[1] in EXTENSIONS:
             txtfiles.append(mypath + "/" + f)
     return txtfiles
+
+
+if __name__ == '__main__':
+    for file in get_all_txt_files():
+        plot_file(file)
