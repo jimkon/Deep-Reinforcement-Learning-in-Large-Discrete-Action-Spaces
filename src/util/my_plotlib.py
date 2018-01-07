@@ -34,9 +34,14 @@ class Line:
                  self.y,
                  self.color,
                  linewidth=self.width,
-                 linestyle=self.style)
-        plt.text(self.x[0], text_y,
-                 self.text, color=self.color)
+                 linestyle=self.style,
+                 label=self.text)
+        # plt.text(self.x[0], text_y,
+        #          self.text, color=self.color)
+
+        plt.legend()
+        if log:
+            plt.yscale('log')
 
         if fig is None:
             plt.show()
