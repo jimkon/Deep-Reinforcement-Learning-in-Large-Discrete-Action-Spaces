@@ -12,7 +12,7 @@ from util.data import Timer
 time_now = -1
 
 
-def run(episodes=[2500], collecting_data=True, experiment='InvertedPendulum-v1'):
+def run(episodes=2500, collecting_data=True, experiment='InvertedPendulum-v1'):
 
     env = gym.make(experiment)
 
@@ -30,7 +30,8 @@ def run(episodes=[2500], collecting_data=True, experiment='InvertedPendulum-v1')
     print(file_name)
     result_fetcher = Data(file_name)
 
-    result_fetcher.add_arrays(['experiment', 'max_actions' 'rewards', 'count', 'actions', 'done'])
+    result_fetcher.add_arrays(['experiment', 'max_actions', 'action_space',
+                               'rewards', 'count', 'actions', 'done'])
     result_fetcher.add_arrays(['state_' + str(i) for i in range(agent.observation_space_size)])
 
     result_fetcher.add_timers(['render', 'act', 'step', 'saving'], 'run_')
@@ -39,6 +40,7 @@ def run(episodes=[2500], collecting_data=True, experiment='InvertedPendulum-v1')
 
     result_fetcher.add_to_array('experiment', experiment)
     result_fetcher.add_to_array('max_actions', max_actions)
+    result_fetcher.add_to_array('action_space', agent.get_action_space())
 
     timer = Timer()
 
@@ -111,39 +113,6 @@ def run(episodes=[2500], collecting_data=True, experiment='InvertedPendulum-v1')
 
     result_fetcher.print_times(groups=['run_'])
     result_fetcher.print_times(groups=['agent_'], total_time_field='count')
-
-
-def save_episode(episode, overwrite=True):
-    from pathlib import Path
-    import datetime
-    from os import makedirs
-
-    string = str(episode).replace('},', '},\n')
-
-    if overwrite:
-        file = open('results/last_episode', 'w')
-        file.write(string)
-        file.close()
-    else:
-        now = datetime.datetime.now()
-
-        dir_name = "results/%s-%s-%s" % (now.day, now.month, now.year)
-        file = Path(dir_name)
-        if not file.is_dir():
-            makedirs(dir_name)
-
-        counter = 0
-        while True:
-            file_name = dir_name + '/episode_%d.txt' % (counter)
-            file = Path(file_name)
-            if file.is_file():
-                print(file_name + " exists")
-                counter += 1
-            else:
-                file = open(file_name, 'w')
-                file.write(string)
-                file.close()
-                break
 
 
 if __name__ == '__main__':
