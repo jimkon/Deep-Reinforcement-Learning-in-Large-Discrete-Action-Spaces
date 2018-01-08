@@ -22,7 +22,7 @@ def run(episodes=2500, collecting_data=True, experiment='InvertedPendulum-v1'):
     steps = env.spec.timestep_limit
 
     # agent = DDPGAgent(env)
-    max_actions = 1e2
+    max_actions = 1e4
     agent = WolpertingerAgent(env, max_actions=max_actions)
 
     # file_name = "results/data_" + agent.get_name() + str(episodes) + ".txt"
@@ -96,6 +96,8 @@ def run(episodes=2500, collecting_data=True, experiment='InvertedPendulum-v1'):
                 time_passed = timer.get_time()
                 print('Reward:', total_reward, 'Steps:', t, 't:',
                       time_passed, '({}/step)'.format(round(time_passed / t)))
+                print('total time {} mins ({} seconds)'.format(
+                    time_passed / (60000), time_passed / (1000)))
 
                 if not collecting_data:
                     # save_episode(episode_history)

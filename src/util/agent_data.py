@@ -45,7 +45,14 @@ def plot_actions(fd, episodes=None, action_space_flag=False):
         action_space = fd.get_data('action_space')
         lines.extend((Constant(x, k, line_color='#a0a0a0') for k in action_space))
 
-    lines.append(Line(x, data, line_color='-o', line_width=0.5))
+    try:
+        cont_actions = fd.get_data('actors_result')
+        lines.append(Line(x, cont_actions, line_color='#000000', text='actors action'))
+    except Exception as e:
+        print(e)
+        exit()
+
+    lines.append(Line(x, data, line_color='-o', line_width=0.5, text='discrete action'))
     plot_lines(lines, seps, grid_flag=not action_space_flag,
                axis_labels={'y': 'action space', 'x': 'steps'})
 
