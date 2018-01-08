@@ -22,19 +22,23 @@ def run(episodes=[2500], collecting_data=True, experiment='InvertedPendulum-v1')
     steps = env.spec.timestep_limit
 
     # agent = DDPGAgent(env)
-    agent = WolpertingerAgent(env, max_actions=1e2)
+    max_actions = 1e2
+    agent = WolpertingerAgent(env, max_actions=max_actions)
 
     # file_name = "results/data_" + agent.get_name() + str(episodes) + ".txt"
     file_name = "data_" + str(episodes) + '_' + agent.get_name()
     print(file_name)
     result_fetcher = Data(file_name)
 
-    result_fetcher.add_arrays(['rewards', 'count', 'actions', 'done'])
+    result_fetcher.add_arrays(['experiment', 'max_actions' 'rewards', 'count', 'actions', 'done'])
     result_fetcher.add_arrays(['state_' + str(i) for i in range(agent.observation_space_size)])
 
     result_fetcher.add_timers(['render', 'act', 'step', 'saving'], 'run_')
     result_fetcher.add_timer('t_run_observe', one_hot=False)
     agent.add_data_fetch(result_fetcher)
+
+    result_fetcher.add_to_array('experiment', experiment)
+    result_fetcher.add_to_array('max_actions', max_actions)
 
     timer = Timer()
 
