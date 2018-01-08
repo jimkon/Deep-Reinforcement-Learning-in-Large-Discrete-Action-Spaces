@@ -40,7 +40,7 @@ def run(episodes=250, collecting_data=True):
                        'obs2': observation,
                        'done': done,
                        't': t}
-                       
+
             agent.observe(episode)
 
             total_reward += reward
@@ -51,7 +51,8 @@ def run(episodes=250, collecting_data=True):
                 break
 
     # end of episodes
-    print('Average rewards:',np.average(rewards))
+    print('Average rewards:', np.average(rewards))
+
 
 if __name__ == '__main__':
     run()
