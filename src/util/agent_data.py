@@ -30,6 +30,7 @@ def plot_actions(fd, episodes=None, action_space_flag=False):
     lines = []
 
     data = []
+
     seps = []
     if episodes is None:
         data = fd.get_data('actions')
@@ -46,11 +47,15 @@ def plot_actions(fd, episodes=None, action_space_flag=False):
         lines.extend((Constant(x, k, line_color='#a0a0a0') for k in action_space))
 
     try:
-        cont_actions = fd.get_data('actors_result')
+        if episodes is None:
+            cont_actions = fd.get_data('actors_result')
+        else:
+            cont_actions = []
+            for ep in episodes:
+                cont_actions.extend(fd.get_episode_data('actors_result', ep))
         lines.append(Line(x, cont_actions, line_color='#000000', text='actors action'))
     except Exception as e:
-        print(e)
-        exit()
+        pass
 
     lines.append(Line(x, data, line_color='-o', line_width=0.5, text='discrete action'))
     plot_lines(lines, seps, grid_flag=not action_space_flag,
@@ -75,7 +80,7 @@ def plot_action_distribution(fd, batches=-1):
         min_action = np.amin(data)
         max_action = np.amax(data)
 
-        y, x = np.histogram(data, bins=len(fd.get_data('action_space')), density=True)
+        y, x = np.histogram(data, bins=len(fd.get_data('action_space')), density=False)
         # y, x = np.histogram(data, bins=6, density=True)
 
         x = np.linspace(min_action, max_action, len(y))
@@ -83,6 +88,7 @@ def plot_action_distribution(fd, batches=-1):
         if batches > 2:
             x = x[non_zero]
             y = y[non_zero]
+
         y = y / np.sum(y)
         lines.append(Line(x, y, style='-',
                           text='{}-{}'.format(eps[i], eps[i + 1]),
