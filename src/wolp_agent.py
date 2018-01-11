@@ -6,21 +6,21 @@ from ddpg import agent
 
 class WolpertingerAgent(agent.DDPGAgent):
 
-    def __init__(self, env, max_actions=1e6, k_nearest_neighbors=100):
+    def __init__(self, env, max_actions=1e6, k_ratio=0.1):
         super().__init__(env)
         if self.continious_action_space:
             self.actions = np.linspace(self.low, self.high, max_actions)
         else:
             self.actions = np.arange(self.low, self.high)
         # self.actions = list(self.actions)
-        self.k_nearest_neighbors = k_nearest_neighbors
+        self.k_nearest_neighbors = int(max_actions * k_ratio)
         # init flann
         self.actions.shape = (len(self.actions), self.action_space_size)
         self.flann = pyflann.FLANN()
         params = self.flann.build_index(self.actions, algorithm='kdtree')
 
     def get_name(self):
-        return 'Wolp_v2_k' + str(self.k_nearest_neighbors) + '_' + super().get_name()
+        return 'Wolp_v2_' + str(len(self.actions)) + 'k' + str(self.k_nearest_neighbors) + '_' + super().get_name()
 
     def get_action_space(self):
         return self.actions

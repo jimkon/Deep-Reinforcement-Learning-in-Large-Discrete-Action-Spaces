@@ -15,7 +15,8 @@ time_now = -1
 def run(episodes=2500,
         collecting_data=False,
         experiment='InvertedPendulum-v1',
-        max_actions=1e2):
+        max_actions=1e3,
+        knn=0.1):
 
     env = gym.make(experiment)
 
@@ -25,7 +26,7 @@ def run(episodes=2500,
     steps = env.spec.timestep_limit
 
     # agent = DDPGAgent(env)
-    agent = WolpertingerAgent(env, max_actions=max_actions)
+    agent = WolpertingerAgent(env, max_actions=max_actions, k_ratio=knn)
 
     # file_name = "results/data_" + agent.get_name() + str(episodes) + ".txt"
     file_name = "data_" + str(episodes) + '_' + agent.get_name()
