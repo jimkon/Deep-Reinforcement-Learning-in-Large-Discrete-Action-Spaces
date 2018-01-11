@@ -4,10 +4,12 @@ from random import randint
 
 
 class Line:
-    def __init__(self, x, y, line_width=1, line_color=None, text='', style='-'):
+    def __init__(self, x, y, line_width=1, line_color=None, text='', style='-',
+                 axis_labels={'y': 'y', 'x': 'x'}):
         self.x = x
         self.y = y
         self.width = line_width
+        self.axis_labels = axis_labels
 
         if line_color is None:
 
@@ -23,8 +25,8 @@ class Line:
         if fig is None:
             plt.figure()
             plt.grid(True)
-            plt.ylabel('y')
-            plt.xlabel('x')
+            plt.ylabel(self.axis_labels['y'])
+            plt.xlabel(self.axis_labels['x'])
 
         plt.title(title)
 
@@ -65,12 +67,13 @@ class Constant(Line):
         super().__init__(x, y, line_width, line_color, text, style)
 
 
-def plot_lines(lines, seps=None, grid_flag=True, log=False, title=''):
+def plot_lines(lines, seps=None, grid_flag=True, log=False, title='',
+               axis_labels={'y': 'y', 'x': 'x'}):
     fig = plt.figure()
     plt.grid(grid_flag)
     plt.title(title)
-    plt.ylabel('y')
-    plt.xlabel('x')
+    plt.ylabel(axis_labels['y'])
+    plt.xlabel(axis_labels['x'])
     max_y = []
     min_y = []
     for line in lines:

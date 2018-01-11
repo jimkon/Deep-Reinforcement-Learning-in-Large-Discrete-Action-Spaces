@@ -26,10 +26,11 @@ def plot_rewards(fd):
     data_graph.plot_data(data, batch_size=-1, file_name='rewards')
 
 
-def plot_actions(fd, episodes=None, action_space=None):
+def plot_actions(fd, episodes=None, action_space_flag=False):
     lines = []
 
     data = []
+
     seps = []
     if episodes is None:
         data = fd.get_data('actions')
@@ -41,50 +42,67 @@ def plot_actions(fd, episodes=None, action_space=None):
     if len(seps) == 1:
         seps = []
     x = np.arange(len(data))
-    if action_space is not None:
+    if action_space_flag:
+        action_space = fd.get_data('action_space')
         lines.extend((Constant(x, k, line_color='#a0a0a0') for k in action_space))
 
-    lines.append(Line(x, data, line_color='-o'))
-    plot_lines(lines, seps, grid_flag=action_space is None)
+    try:
+        if episodes is None:
+            cont_actions = fd.get_data('actors_result')
+        else:
+            cont_actions = []
+            for ep in episodes:
+                cont_actions.extend(fd.get_episode_data('actors_result', ep))
+        lines.append(Line(x, cont_actions, line_color='#000000', text='actors action'))
+    except Exception as e:
+        pass
+
+    lines.append(Line(x, data, line_color='-o', line_width=0.5, text='discrete action'))
+    plot_lines(lines, seps, grid_flag=not action_space_flag,
+               axis_labels={'y': 'action space', 'x': 'steps'})
 
 
-def plot_action_distribution(fd):
+def plot_action_distribution(fd, batches=-1):
     lines = []
 
     # different lines for each batch of episodes
     number_of_episodes = fd.get_number_of_episodes()
-    batches = int(min(5, math.ceil(number_of_episodes / 800)))
+    if batches < 2:
+        batches = 2
     batch_size = int(number_of_episodes / batches)
     eps = [int(item) for item in np.linspace(0, number_of_episodes, batches)]
-    colors = np.linspace(0xaa00aa, 0x00ff00, batches + 1)
-
+    colors = np.linspace(0xbbbb11, 0x000011, batches - 1)
+    # color = 0xaaaaaa
     for i in range(batches - 1):
         episodes = np.arange(eps[i], eps[i + 1])
         data = fd.get_episodes_data('actions', episodes)
 
         min_action = np.amin(data)
         max_action = np.amax(data)
-        # data_len = len(data)
-        y, x = np.histogram(data, bins='auto', density=True)
+
+        y, x = np.histogram(data, bins=len(fd.get_data('action_space')), density=False)
+        # y, x = np.histogram(data, bins=6, density=True)
 
         x = np.linspace(min_action, max_action, len(y))
         non_zero = np.where(y > 0)
-        x = x[non_zero]
-        y = y[non_zero]
+        if batches > 2:
+            x = x[non_zero]
+            y = y[non_zero]
+
         y = y / np.sum(y)
         lines.append(Line(x, y, style='-',
                           text='{}-{}'.format(eps[i], eps[i + 1]),
                           line_color='#{:06X}'.format(int(colors[i]))))
 
-    plot_lines(lines, log=False)
+    plot_lines(lines, axis_labels={'y': 'Pr', 'x': 'action space'})
 
 
 def plot_actions_statistics(fd):
     lines = []
 
     data = fd.get_data('actions')
-    y, x = np.histogram(data, bins='auto', density=False)
-    print(len(y))
+    y, x = np.histogram(data, bins=len(fd.get_data('action_space')), density=False)
+
     total = np.sum(y)
     y = np.sort(y)[::-1]
     y = y / total
@@ -94,18 +112,22 @@ def plot_actions_statistics(fd):
     for i in range(1, len(y)):
         sum_y[i] = y[i] + sum_y[i - 1]
 
-    sum_probs = [0.8, 0.9, 0.99, 0.999]
+    sum_probs = [0.8, 0.9, 0.99]
     for p in sum_probs:
         x_p = np.where(sum_y < p)[0]
         x_p = x_p[len(x_p) - 1] + 1
         lines.append(Line(x_p, p, line_color='o',
                           text='{} ({} actions)'.format(p, x_p)))
 
+    all_actions = int(fd.get_perc_of_unique_actions_used() * len(fd.get_data('action_space')))
+    lines.append(Line(all_actions, 1, line_color='o',
+                      text='{} ({} actions)'.format(1, all_actions)))
+
     x = np.arange(len(y))
 
-    lines.append(Line(x, y, text='f'))
-    lines.append(Line(x, sum_y, text='F'))
-    plot_lines(lines)
+    lines.append(Line(x, y, text='f', line_color='b'))
+    lines.append(Line(x, sum_y, text='F', line_color='r'))
+    plot_lines(lines, axis_labels={'y': 'Pr', 'x': 'actions'})
 
 
 def plot_states(fd, episodes=None):
@@ -175,6 +197,12 @@ def add_y_dimension(data, batch_size):
 
 class Agent_data(Data):
 
+    def add_field_to_old_version(self, field, value):
+        self.load()
+        self.add_array(field)
+        self.add_to_array(field, value)
+        self.async_save()
+
     def get_episodes_with_reward_greater_than(self, th):
         return np.where(self.get_data('rewards') >= th)[0]
 
@@ -211,3 +239,15 @@ class Agent_data(Data):
 
     def get_number_of_episodes(self):
         return len(self.get_data('rewards'))
+
+    def get_adaption_time(self, reward_threshold=50):
+        first_increase = self.get_episodes_with_reward_greater_than(reward_threshold)[0]
+        adaption_time = len(self.get_episodes_data('actions', np.arange(first_increase)))
+        return adaption_time
+
+    def get_perc_of_unique_actions_used(self, used_more_than=1):
+        data = self.get_data('actions')
+
+        unique = np.unique(data, return_counts=True)[1]
+        action_space_length = len(self.get_data('action_space'))
+        return len(np.where(unique >= used_more_than)[0]) / action_space_length

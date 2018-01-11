@@ -6,38 +6,24 @@ from ddpg import agent
 
 class WolpertingerAgent(agent.DDPGAgent):
 
-    def __init__(self, env, max_actions=1e6, max_to_k_ration = 0.1):
+    def __init__(self, env, max_actions=1e6, k_ratio=0.1):
         super().__init__(env)
-        assert isinstance(env.action_space, Box), "action space must be continuous"
-        self.actions = self.init_action_space(env, max_actions)
-        print(self.actions.shape)
-        print(self.actions)
-        exit()
-
-        self.k_nearest_neighbors = int(max_to_k_ration*max_actions)
-        print('wolpertinger agent init')
-        print('max actions = ', max_actions)
-        print('k nearest neighbors =', self.k_nearest_neighbors)
+        if self.continious_action_space:
+            self.actions = np.linspace(self.low, self.high, max_actions)
+        else:
+            self.actions = np.arange(self.low, self.high)
+        # self.actions = list(self.actions)
+        self.k_nearest_neighbors = int(max_actions * k_ratio)
         # init flann
         self.actions.shape = (len(self.actions), self.action_space_size)
         self.flann = pyflann.FLANN()
         params = self.flann.build_index(self.actions, algorithm='kdtree')
-        print('flann init with params->', params)
 
     def get_name(self):
-        return 'Wolp_v1_k' + str(self.k_nearest_neighbors) + '_' + super().get_name()
+        return 'Wolp_v2_' + str(len(self.actions)) + 'k' + str(self.k_nearest_neighbors) + '_' + super().get_name()
 
-    def init_action_space(self, env, max_actions, equal_actions_in_each_dim = False):
-        print(env)
-        print(max_actions)
-        space = env.action_space
-        low = space.low
-        high = space.high
-        print(low, high)
-        dims = len(low)
-        print(max_actions**(1/dims))
-
-
+    def get_action_space(self):
+        return self.actions
 
     def act(self, state):
         proto_action = super().act(state)
