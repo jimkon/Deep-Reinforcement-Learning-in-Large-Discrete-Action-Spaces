@@ -9,7 +9,7 @@ class WolpertingerAgent(agent.DDPGAgent):
     def __init__(self, env, max_actions=1e6, k_ratio=0.1):
         super().__init__(env)
         if self.continious_action_space:
-            self.actions = np.linspace(self.low, self.high, max_actions)
+            self.actions = quantize_action_space(self.low, self.high, max_actions)
         else:
             self.actions = np.arange(self.low, self.high)
         # self.actions = list(self.actions)
@@ -21,6 +21,9 @@ class WolpertingerAgent(agent.DDPGAgent):
 
     def get_name(self):
         return 'Wolp_v2_' + str(len(self.actions)) + 'k' + str(self.k_nearest_neighbors) + '_' + super().get_name()
+
+    def quantize_action_space(self, low, high, max_actions):
+        pass
 
     def get_action_space(self):
         return self.actions
