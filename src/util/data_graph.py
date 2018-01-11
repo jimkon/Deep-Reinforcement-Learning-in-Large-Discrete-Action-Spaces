@@ -28,19 +28,22 @@ def plot_data(data, batch_size=-1, file_name="data"):
     batches = break_into_batches(data, batch_size)
     final_data = []
 
+    avg_batch = []
     for batch in batches:
-        final_data.append([np.amax(batch), np.average(batch), np.amin(batch)])
+        avg_batch.extend(batch)
+        final_data.append([np.amax(batch), np.average(batch),
+                           np.amin(batch), np.average(avg_batch)])
 
     x_axis = batch_size * np.arange(0, len(final_data))
 
     plt.figure()
     plt.subplot(211)
 
-    line_widths = [1, 2, 1]
-    line_colors = ['r', 'g', 'b']
-    texts = ['max', 'data', 'min']
+    line_widths = [1, 2, 1, 2]
+    line_colors = ['r', 'g', 'b', 'm']
+    texts = ['max', 'data', 'min', 'avg=' + str(avg)]
     max_value = np.amax(final_data)
-    for i in range(3):  # derivative out
+    for i in range(len(final_data)):
         if batch_size == 1 and not i == 1:
             continue
 
@@ -50,8 +53,8 @@ def plot_data(data, batch_size=-1, file_name="data"):
         # plt.text(0.05 * len(final_data), (i + 1) * 0.1 * max_value,
         #          texts[i], color=line_colors[i])
 
-    plt.plot([x_axis[0], x_axis[len(x_axis) - 1]], [avg] *
-             2, 'm', linewidth=0.5, label='avg=' + str(avg))
+    # plt.plot([x_axis[0], x_axis[len(x_axis) - 1]], [avg] *
+    #          2, 'm', linewidth=0.5, label='avg=' + str(avg))
     # plt.text(0.05 * len(final_data), (4) * 0.1 * max_value,
     #          'avg=' + str(avg), color='m')
 
