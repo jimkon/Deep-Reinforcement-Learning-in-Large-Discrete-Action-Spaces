@@ -25,6 +25,24 @@ def plot_rewards(fd):
 
     data_graph.plot_data(data, batch_size=-1, file_name='rewards')
 
+def plot_average_reward(fd):
+    rewards = fd.get_data('rewards')
+    batch_size = int(len(rewards)/100)
+    batches = data_graph.break_into_batches(rewards, batch_size)
+    sum = 0
+    avg = []
+    count = 0
+    for batch in batches:
+        sum += np.sum(batch)
+        count += batch_size
+        avg.append(sum/count)
+
+    x = np.arange(len(avg))*batch_size
+    lines = [Line(x, avg, text='avg='+str(avg[len(avg)-1]), line_color='m')]
+    # lines.append(Line())
+
+    plot_lines(lines)
+
 
 def plot_actions(fd, episodes=None, action_space_flag=False):
     lines = []
