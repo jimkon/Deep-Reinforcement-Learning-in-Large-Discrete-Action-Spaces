@@ -8,19 +8,22 @@ class WolpertingerAgent(agent.DDPGAgent):
 
     def __init__(self, env, max_actions=1e6, k_ratio=0.1):
         super().__init__(env)
+        self.experiment = env.spec.id
         if self.continious_action_space:
             self.actions = self.quantize_action_space(self.low, self.high, max_actions)
         else:
             self.actions = np.arange(self.low, self.high)
 
         self.k_nearest_neighbors = int(max_actions * k_ratio)
+
         # init flann
         self.actions.shape = (len(self.actions), self.action_space_size)
         self.flann = pyflann.FLANN()
         params = self.flann.build_index(self.actions, algorithm='kdtree')
 
+
     def get_name(self):
-        return 'Wolp_v2_' + str(len(self.actions)) + 'k' + str(self.k_nearest_neighbors) + '_' + super().get_name()
+        return 'Wolp2_{}k{}_{}'.format(len(self.actions), self.k_nearest_neighbors, self.experiment)
 
     def quantize_action_space(self, low, high, max_actions):
         pass
