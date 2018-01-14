@@ -26,6 +26,32 @@ def plot_rewards(fd):
     data_graph.plot_data(data, batch_size=-1, file_name='rewards')
 
 
+def plot_average_reward(fd):
+    rewards = fd.get_data('rewards')
+    batch_size = max(1, int(len(rewards) / 100))
+    batches = data_graph.break_into_batches(rewards, batch_size)
+    sum = 0
+    avg = []
+    count = 0
+    for batch in batches:
+        sum += np.sum(batch)
+        count += batch_size
+        avg.append(sum / count)
+
+    x = np.arange(len(avg)) * batch_size
+    lines = [Line(x, avg, text='avg=' + str(avg[len(avg) - 1]), line_color='m')]
+
+    adaption_episode = fd.get_adaption_episode()
+    # fit in x axis
+    adaption_episode = int(round(adaption_episode / batch_size) * batch_size)
+    lines.append(Line(adaption_episode,
+                      avg[int(round(adaption_episode / batch_size))],
+                      line_color='o',
+                      text='adaption time={} steps'.format(fd.get_adaption_time())))
+
+    plot_lines(lines)
+
+
 def plot_actions(fd, episodes=None, action_space_flag=False):
     lines = []
 
@@ -201,7 +227,7 @@ class Agent_data(Data):
         self.load()
         self.add_array(field)
         self.add_to_array(field, value)
-        self.async_save()
+        self.save()
 
     def get_episodes_with_reward_greater_than(self, th):
         return np.where(self.get_data('rewards') >= th)[0]
@@ -240,8 +266,15 @@ class Agent_data(Data):
     def get_number_of_episodes(self):
         return len(self.get_data('rewards'))
 
+    def get_adaption_episode(self, reward_threshold=50):
+        eps = self.get_episodes_with_reward_greater_than(reward_threshold)
+        if len(eps) > 0:
+            return eps[0]
+        else:
+            return -1
+
     def get_adaption_time(self, reward_threshold=50):
-        first_increase = self.get_episodes_with_reward_greater_than(reward_threshold)[0]
+        first_increase = self.get_adaption_episode(reward_threshold)
         adaption_time = len(self.get_episodes_data('actions', np.arange(first_increase)))
         return adaption_time
 

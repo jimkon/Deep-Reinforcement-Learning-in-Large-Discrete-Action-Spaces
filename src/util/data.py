@@ -1,12 +1,7 @@
 import numpy as np
-import threading
 import pickle
 from timer import *
-
-
-def save_dictionary(dict, path):
-    with open('results/obj/' + path + '.pkl', 'wb') as f:
-        pickle.dump(dict, f, 0)
+import os
 
 
 class Data:
@@ -15,6 +10,7 @@ class Data:
         self.name = name
         self.data = {}
         self.timers = {}
+        self.temp_saves = 0
 
     def _add(self, field_name, timer, timer_one_hot=True):
         if field_name in self.data.keys():
@@ -66,6 +62,10 @@ class Data:
 
         self.reset_timers_one_hot()
 
+    def reset_fields(self):
+        for key in self.data.keys():
+            self.data[key] = np.array([])
+
     def reset_timers(self):
         for t in self.timers:
             self.timers[t].reset()
@@ -90,15 +90,42 @@ class Data:
         for k in self.get_keys():
             print(k)
 
+    def merge(self, data):
+        for key in self.data.keys():
+            if key not in data.data.keys():
+                continue
+
+            final_data = np.concatenate((self.get_data(key), data.get_data(key)))
+            self.set_data(key, final_data)
+
     def load(self, path=None):
         if path is None:
             path = self.name
         with open('results/obj/' + path + '.pkl', 'rb') as f:
             self.data = pickle.load(f)
 
-    def async_save(self):
-        thread = save_fulldata(self)
-        thread.start()
+    def temp_save(self):
+        self.save(path='temp/{}_temp{}'.format(self.name, self.temp_saves), final_save=False)
+        self.temp_saves += 1
+        self.reset_fields()
+
+    def save(self, path=None, final_save=True):
+        if path == None:
+            path = self.name
+
+        if final_save and self.temp_saves > 0:
+            clone_data = self.get_empty_clone()
+            for i in range(self.temp_saves):
+                temp_file = 'temp/{}_temp{}'.format(self.name, i)
+                temp_data = Data()
+                temp_data.load(path=temp_file)
+                clone_data.merge(temp_data)
+                os.remove('results/obj/' + temp_file + '.pkl')
+            clone_data.merge(self)
+            self.data = clone_data.data
+
+        with open('results/obj/' + path + '.pkl', 'wb') as f:
+            pickle.dump(self.data, f, 0)
 
     def print_times(self, other_keys=None, groups=None, total_time_field=None):
         final_keys = []
@@ -164,16 +191,6 @@ class Data:
         return res
 
     def get_empty_clone(self):
-        res = Fulldata(self.name + '_clone')
+        res = Data(self.name + '_clone')
         res.add_arrays(self.get_keys())
         return res
-
-
-class save_fulldata(threading.Thread):
-    def __init__(self, fd):
-        threading.Thread.__init__(self)
-        self.dict = fd.data
-        self.path = fd.name
-
-    def run(self):
-        save_dictionary(self.dict, self.path)
