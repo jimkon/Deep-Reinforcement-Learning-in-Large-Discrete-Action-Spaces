@@ -22,7 +22,7 @@ class WolpertingerAgent(agent.DDPGAgent):
         params = self.flann.build_index(self.actions, algorithm='kdtree')
 
     def get_name(self):
-        return 'Wolp2_{}k{}_{}'.format(len(self.actions), self.k_nearest_neighbors, self.experiment)
+        return 'Wolp3_{}k{}_{}'.format(len(self.actions), self.k_nearest_neighbors, self.experiment)
 
     def quantize_action_space(self, low, high, max_actions):
         return np.linspace(low, high, max_actions)
