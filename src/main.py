@@ -9,10 +9,8 @@ from ddpg.agent import DDPGAgent
 from util.data import Data
 from util.data import Timer
 
-time_now = -1
 
-
-def run(episodes=2500,
+def run(episodes=30,
         collecting_data=False,
         experiment='InvertedPendulum-v1',
         max_actions=1e3,
@@ -46,15 +44,17 @@ def run(episodes=2500,
     result_fetcher.add_to_array('action_space', agent.get_action_space())
 
     timer = Timer()
+    full_epoch_timer = Timer()
+    reward_sum = 0
 
-    for i in range(episodes):
+    for ep in range(episodes):
         timer.reset()
         observation = env.reset()
         # for i in range(agent.observation_space_size):
         #     result_fetcher.add_to_array('state_' + str(i), observation[i])
 
         total_reward = 0
-        print('Episode ', i, '/', episodes - 1, 'started...', end='')
+        print('Episode ', ep, '/', episodes - 1, 'started...', end='')
         for t in range(steps):
 
             result_fetcher.reset_timers()
@@ -92,30 +92,31 @@ def run(episodes=2500,
 
             total_reward += reward
             result_fetcher.add_to_array('done', 1 if done else 0)
+
             if done or (t == steps - 1):
                 t += 1
                 result_fetcher.add_to_array('rewards', total_reward)  # ------
-
+                reward_sum += total_reward
                 time_passed = timer.get_time()
-                print('Reward:', total_reward, 'Steps:', t, 't:',
-                      time_passed, '({}/step)'.format(round(time_passed / t)))
+                print('Reward:{} Steps:{} t:{} ({}/step) Cur avg={}'.format(total_reward, t,
+                                                                            time_passed, round(
+                                                                                time_passed / t),
+                                                                            round(reward_sum / (ep + 1))))
 
-                if not collecting_data:
-                    # save_episode(episode_history)
-                    pass
-                else:
-                    pass
-                    # if i % 100 == 0:
-                    # result_fetcher.async_save()
+                if ep % 500 == 0:
+                    result_fetcher.temp_save()
+
                 result_fetcher.sample_timer('saving')  # ------
                 break
     # end of episodes
-
-    result_fetcher.async_save()
+    time = full_epoch_timer.get_time()
+    print('Run {} episodes in {} seconds and got {} average reward'.format(
+        episodes, time / 1000, reward_sum / episodes))
+    result_fetcher.save()
     # result_fetcher.print_data()
 
-    result_fetcher.print_times(groups=['run_'])
-    result_fetcher.print_times(groups=['agent_'], total_time_field='count')
+    # result_fetcher.print_times(groups=['run_'])
+    # result_fetcher.print_times(groups=['agent_'], total_time_field='count')
 
 
 if __name__ == '__main__':
