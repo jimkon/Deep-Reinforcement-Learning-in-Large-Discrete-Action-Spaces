@@ -28,7 +28,7 @@ def plot_rewards(fd):
 
 def plot_average_reward(fd):
     rewards = fd.get_data('rewards')
-    batch_size = int(len(rewards) / 100)
+    batch_size = max(1, int(len(rewards) / 100))
     batches = data_graph.break_into_batches(rewards, batch_size)
     sum = 0
     avg = []
@@ -227,7 +227,7 @@ class Agent_data(Data):
         self.load()
         self.add_array(field)
         self.add_to_array(field, value)
-        self.async_save()
+        self.save()
 
     def get_episodes_with_reward_greater_than(self, th):
         return np.where(self.get_data('rewards') >= th)[0]
@@ -267,7 +267,11 @@ class Agent_data(Data):
         return len(self.get_data('rewards'))
 
     def get_adaption_episode(self, reward_threshold=50):
-        return self.get_episodes_with_reward_greater_than(reward_threshold)[0]
+        eps = self.get_episodes_with_reward_greater_than(reward_threshold)
+        if len(eps) > 0:
+            return eps[0]
+        else:
+            return -1
 
     def get_adaption_time(self, reward_threshold=50):
         first_increase = self.get_adaption_episode(reward_threshold)
