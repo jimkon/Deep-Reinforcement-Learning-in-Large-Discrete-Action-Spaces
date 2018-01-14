@@ -1,46 +1,68 @@
 import numpy as np
 import itertools
+import pyflann
 
 
-class Action_space:
+class Space:
 
-    def __init__(self, low, high, max_actions):
-        dims = len(low)
+    def __init__(self, low, high, points):
+        self._low = np.array(low)
+        self._high = np.array(high)
+        self._range = self._high - self._low
+        self._dimensions = len(low)
+        self.__space = init_uniform_space([0] * self._dimensions,
+                                          [1] * self._dimensions,
+                                          points)
+        self._flann = pyflann.FLANN()
+        self.rebuild_flann()
 
-        k = round(max_actions**(1 / dims))
-        # print(k)
+    def rebuild_flann(self):
+        self._index = self._flann.build_index(self.__space, algorithm='kdtree')
 
-        axis = []
-        for i in range(dims):
-            axis.append(list(np.linspace(low[i], high[i], k)))
+    def search_point(self, point, k):
+        p_in = self.import_point(point)
+        print('search point', p_in)
 
-        # print(axis)
+        search_res, _ = self._flann.nn_index(p_in, k)
+        print('result indexes', search_res)
+        knns = self.__space[search_res]
+        print('knns', knns)
+        p_out = []
+        for p in knns:
+            p_out.append(self.export_point(p))
 
-        self.space = []
-        for _ in itertools.product(*axis):
-            self.space.append(list(_))
+        self.plot_space(additional_points=[p_in])
+        return np.array(p_out)
 
-        self.space = np.array(self.space)
+    def import_point(self, point):
+        return (point - self._low) / self._range
 
-        # print(space)
-        print(self.space.shape)
+    def export_point(self, point):
+        return self._low + point * self._range
 
     def get_space(self):
-        return self.space
+        return self.__space
 
-    def plot_space(self):
+    def shape(self):
+        return self.__space.shape
+
+    def plot_space(self, additional_points=None):
         from mpl_toolkits.mplot3d import Axes3D
         import matplotlib.pyplot as plt
         import util.my_plotlib as mplt
 
-        dims = self.space.shape[1]
+        dims = self._dimensions
 
         if dims > 3:
             print(
-                'Cannot plot a {}-dimensional space. Max 3 dimensions'.format(self.space.shape[1]))
+                'Cannot plot a {}-dimensional space. Max 3 dimensions'.format(dims))
             return
 
-        space = a_s.get_space()
+        space = self.get_space()
+        if additional_points is not None:
+            for i in additional_points:
+                space = np.append(space, additional_points, axis=0)
+
         if dims == 1:
             lines = []
             for x in space:
@@ -68,13 +90,34 @@ class Action_space:
             plt.show()
 
 
+def init_uniform_space(low, high, points):
+    dims = len(low)
+    points_in_each_axis = round(points**(1 / dims))
+
+    axis = []
+    for i in range(dims):
+        axis.append(list(np.linspace(low[i], high[i], points_in_each_axis)))
+
+    space = []
+    for _ in itertools.product(*axis):
+        space.append(list(_))
+
+    return np.array(space)
+
+
 if __name__ == '__main__':
 
-    max_points = 100
-    # a_s = Action_space([-1], [1], max_points)
-    # a_s = Action_space([-1, -2], [1, 2], max_points)
-    a_s = Action_space([-1, -2, -3], [1, 2, 3], max_points)
-    # a_s = Action_space([-1, -2, -3, -4], [1, 2, 3, 4], max_points)
-    # a_s = Action_space([-1, -2, -3, -4, -5], [1, 2, 3, 4, 5], max_points)
-    # a_s = Action_space([-1, -2, -3, -4, -5, -6], [1, 2, 3, 4, 5, 6], max_points)
-    a_s.plot_space()
+    max_points = 20
+    # s = Space([-1], [1], max_points)
+    # s = Space([-1, -2], [1, 2], max_points)
+    s = Space([-1, -2, -3], [1, 2, 3], max_points)
+    # s = Space([-1, -2, -3, -4], [1, 2, 3, 4], max_points)
+    # s = Space([-1, -2, -3, -4, -5], [1, 2, 3, 4, 5], max_points)
+    # s = Space([-1, -2, -3, -4, -5, -6], [1, 2, 3, 4, 5, 6], max_points)
+
+    print(s.get_space())
+    print(s.shape())
+
+    search_point = np.array([[-0.7, 1.2, -3]])
+    # search_point = np.array([[0.15, 0.8, 0]])
+    print(s.search_point([-0.7, 1.2, -3], 3))
