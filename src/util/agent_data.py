@@ -47,7 +47,8 @@ def plot_average_reward(fd):
     lines.append(Line(adaption_episode,
                       avg[int(round(adaption_episode / batch_size))],
                       line_color='o',
-                      text='adaption time={} steps'.format(fd.get_adaption_time())))
+                      text='adaption time={} steps({} episodes)'.format(
+                          fd.get_adaption_time(), adaption_episode)))
 
     plot_lines(lines)
 
