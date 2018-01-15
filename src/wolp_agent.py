@@ -52,7 +52,7 @@ class WolpertingerAgent(agent.DDPGAgent):
             return self.wolp_action(state, proto_action)
 
     def wolp_action(self, state, proto_action):
-        debug = True
+        debug = False
         actions = self.nearest_neighbors(proto_action)[0]
         if debug:
             print('--\nproto action', proto_action, 'state', state)
@@ -75,4 +75,4 @@ class WolpertingerAgent(agent.DDPGAgent):
         return actions[max_index]
 
     def nearest_neighbors(self, proto_action):
-        return self.action_space.search_point(proto_action)
+        return self.action_space.search_point(proto_action, self.k_nearest_neighbors)

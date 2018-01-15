@@ -19,16 +19,6 @@ MAX_ACTION_SPACE_SIZE = 1e6
 # shaping input states and actions
 
 
-def shape_arrays(array, unit_shape):
-
-    number_of_elements = array.shape[0] if len(array.shape) > 1 else 1
-    size_of_element = self.observation_space_size if is_state else self.action_space_size
-
-    res = np.array(array)
-    res.shape = (number_of_elements, size_of_element)
-    return res
-
-
 class Agent:
 
     def __init__(self, env):
@@ -58,6 +48,15 @@ class Agent:
 
     def get_name(self):
         return 'Agent'
+
+    def _np_shaping(self, array, is_state):
+
+        number_of_elements = array.shape[0] if len(array.shape) > 1 else 1
+        size_of_element = self.observation_space_size if is_state else self.action_space_size
+
+        res = np.array(array)
+        res.shape = (number_of_elements, size_of_element)
+        return res
 
 
 class RandomAgent(Agent):
