@@ -17,5 +17,9 @@ pyflann_timing.py
 
 
 # results
-results
+results/*
+#!results/obj/
+#results/obj/*
+#!results/obj/saved/
+
 data
