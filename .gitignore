@@ -18,8 +18,13 @@ pyflann_timing.py
 
 # results
 results/*
-#!results/obj/
-#results/obj/*
-#!results/obj/saved/
+!results/obj/
+results/obj/*
+!results/obj/saved/
+!results/obj/temp/
+results/obj/saved/*
+!results/obj/saved/data_10000_Wolp3_1000k100_InvertedPendulum-v1_shrinked.pkl
+
+
 
 data

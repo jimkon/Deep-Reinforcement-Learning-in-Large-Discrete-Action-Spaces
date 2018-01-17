@@ -230,6 +230,15 @@ class Agent_data(Data):
         self.add_to_array(field, value)
         self.save()
 
+    def remove_fields(self, fields, save_to=None):
+        try:
+            self.load()
+            for key in fields:
+                self.reset_field(key)
+            self.save(path=save_to)
+        except Exception as e:
+            print("Failed to open and modify " + self.name)
+
     def get_episodes_with_reward_greater_than(self, th):
         return np.where(self.get_data('rewards') >= th)[0]
 
