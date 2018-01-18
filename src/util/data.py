@@ -62,9 +62,12 @@ class Data:
 
         self.reset_timers_one_hot()
 
+    def reset_field(self, key):
+        self.data[key] = np.array([])
+
     def reset_fields(self):
         for key in self.data.keys():
-            self.data[key] = np.array([])
+            self.reset_field(key)
 
     def reset_timers(self):
         for t in self.timers:

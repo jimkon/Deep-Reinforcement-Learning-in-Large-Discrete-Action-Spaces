@@ -47,7 +47,8 @@ def plot_average_reward(fd):
     lines.append(Line(adaption_episode,
                       avg[int(round(adaption_episode / batch_size))],
                       line_color='o',
-                      text='adaption time={} steps'.format(fd.get_adaption_time())))
+                      text='adaption time={} steps({} episodes)'.format(
+                          fd.get_adaption_time(), adaption_episode)))
 
     plot_lines(lines)
 
@@ -228,6 +229,15 @@ class Agent_data(Data):
         self.add_array(field)
         self.add_to_array(field, value)
         self.save()
+
+    def remove_fields(self, fields, save_to=None):
+        try:
+            self.load()
+            for key in fields:
+                self.reset_field(key)
+            self.save(path=save_to)
+        except Exception as e:
+            print("Failed to open and modify " + self.name)
 
     def get_episodes_with_reward_greater_than(self, th):
         return np.where(self.get_data('rewards') >= th)[0]

@@ -59,25 +59,22 @@ def plot_data(data, batch_size=-1, file_name="data"):
     plt.ylabel("Reward")
     plt.xlabel("Episode")
 
-    # reduced_data, ignored = ignore_low_values(data)
-    # reduced_data, ignored = ignore_starting_rewards(data)
     reduced_data, ignored = data, 0
     STAT_GROUPS = 20
     MAX_VALUE = np.amax(reduced_data)
     # statistics
-    stats = np.zeros((STAT_GROUPS))
-    for i in reduced_data:
-        index = int(i / ((MAX_VALUE + 1) / STAT_GROUPS))
-        stats[index] += 1
 
     x_axis = ((MAX_VALUE + 1) / STAT_GROUPS) * np.arange(STAT_GROUPS)
     plt.subplot(212)
-    plt.plot(x_axis, stats, 'go-')
-    plt.yscale("log")
-    plt.grid(True)
+    # plt.plot(x_axis, stats, 'go-')
+    # plt.grid(True)
+    plt.hist(reduced_data, 15, histtype='bar', facecolor='g', alpha=0.75,  rwidth=0.8)
+
     plt.ylabel("Distribution")
     plt.xlabel("Value")
+    plt.yscale("log")
 
+    # plt.tight_layout()
     plt.show()
 
 
