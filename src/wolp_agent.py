@@ -2,6 +2,7 @@ import numpy as np
 import pyflann
 from gym.spaces import Box
 from ddpg import agent
+import action_space
 
 
 class WolpertingerAgent(agent.DDPGAgent):
@@ -10,25 +11,28 @@ class WolpertingerAgent(agent.DDPGAgent):
         super().__init__(env)
         self.experiment = env.spec.id
         if self.continious_action_space:
-            self.actions = self.quantize_action_space(self.low, self.high, max_actions)
+            self.action_space = action_space.Space(self.low, self.high, max_actions)
         else:
-            self.actions = np.arange(self.low, self.high)
+            print('This version works only for continuous action space')
+            exit()
+            # self.actions = np.arange(self.low, self.high)
 
         self.k_nearest_neighbors = int(max_actions * k_ratio)
 
         # init flann
-        self.actions.shape = (len(self.actions), self.action_space_size)
-        self.flann = pyflann.FLANN()
-        params = self.flann.build_index(self.actions, algorithm='kdtree')
+        # self.actions.shape = (len(self.actions), self.action_space_size)
+        # self.flann = pyflann.FLANN()
+        # params = self.flann.build_index(self.actions, algorithm='kdtree')
 
     def get_name(self):
-        return 'Wolp3_{}k{}_{}'.format(len(self.actions), self.k_nearest_neighbors, self.experiment)
+        return 'Wolp3_{}k{}_{}'.format(self.action_space.get_number_of_actions(),
+                                       self.k_nearest_neighbors, self.experiment)
 
-    def quantize_action_space(self, low, high, max_actions):
-        return np.linspace(low, high, max_actions)
+    # def quantize_action_space(self, low, high, max_actions):
+    #     return np.linspace(low, high, max_actions)
 
     def get_action_space(self):
-        return self.actions
+        return self.action_space
 
     def act(self, state):
         proto_action = super().act(state)
@@ -36,7 +40,9 @@ class WolpertingerAgent(agent.DDPGAgent):
             return proto_action
 
         if len(proto_action) > 1:
-            return 0
+            print("Check if ever come here")
+            exit()
+
             res = np.array([])
             for i in range(len(proto_action)):
                 res = np.append(res, self.wolp_action(state[i], proto_action[i]))
@@ -64,11 +70,9 @@ class WolpertingerAgent(agent.DDPGAgent):
             print('max', max, '->', max_index)
         if debug:
             print('result action', actions[max_index])
-        # if debug:
-        #     exit()
+        if debug:
+            exit()
         return actions[max_index]
 
     def nearest_neighbors(self, proto_action):
-        results, dists = self.flann.nn_index(
-            proto_action, self.k_nearest_neighbors)  # checks=params["checks"]
-        return self.actions[results]
+        return self.action_space.search_point(proto_action, self.k_nearest_neighbors)

@@ -16,6 +16,8 @@ from collections import deque
 
 MAX_ACTION_SPACE_SIZE = 1e6
 
+# shaping input states and actions
+
 
 class Agent:
 
@@ -44,7 +46,9 @@ class Agent:
     def observe(self, episode):
         pass
 
-    # shaping input states and actions
+    def get_name(self):
+        return 'Agent'
+
     def _np_shaping(self, array, is_state):
 
         number_of_elements = array.shape[0] if len(array.shape) > 1 else 1
@@ -53,9 +57,6 @@ class Agent:
         res = np.array(array)
         res.shape = (number_of_elements, size_of_element)
         return res
-
-    def get_name(self):
-        return 'Agent'
 
 
 class RandomAgent(Agent):
