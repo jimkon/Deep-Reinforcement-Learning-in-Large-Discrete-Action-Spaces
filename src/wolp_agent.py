@@ -13,9 +13,14 @@ class WolpertingerAgent(agent.DDPGAgent):
             self.actions = self.quantize_action_space(self.low, self.high, max_actions)
         else:
             self.actions = np.arange(self.low, self.high)
+<<<<<<< HEAD
+        # self.actions = list(self.actions)
+        self.k_nearest_neighbors = k_nearest_neighbors
+=======
 
         self.k_nearest_neighbors = int(max_actions * k_ratio)
 
+>>>>>>> master
         # init flann
         self.actions.shape = (len(self.actions), self.action_space_size)
         self.flann = pyflann.FLANN()

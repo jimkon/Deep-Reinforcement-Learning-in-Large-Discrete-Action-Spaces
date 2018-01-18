@@ -5,10 +5,13 @@ import numpy as np
 from util import *
 
 from wolp_agent import *
-from ddpg.agent import DDPGAgent
-from util.data import Data
-from util.data import Timer
 
+<<<<<<< HEAD
+
+def run(episodes=250, collecting_data=True):
+
+    experiment = ('InvertedPendulum-v1')
+=======
 
 def run(episodes=30,
         collecting_data=False,
@@ -16,18 +19,26 @@ def run(episodes=30,
         max_actions=1e3,
         knn=0.1):
 
+>>>>>>> master
     env = gym.make(experiment)
-
-    print(env.observation_space)
-    print(env.action_space)
 
     steps = env.spec.timestep_limit
 
+<<<<<<< HEAD
+    max_actions = 1e2
+    agent = WolpertingerAgent(env, k_nearest_neighbors=int(0.1 * max_actions),
+                              max_actions=max_actions)
+=======
     # agent = DDPGAgent(env)
     agent = WolpertingerAgent(env, max_actions=max_actions, k_ratio=knn)
+>>>>>>> master
 
-    # file_name = "results/data_" + agent.get_name() + str(episodes) + ".txt"
     file_name = "data_" + str(episodes) + '_' + agent.get_name()
+<<<<<<< HEAD
+
+    rewards = []
+    for i in range(episodes):
+=======
     print(file_name)
     result_fetcher = Data(file_name)
 
@@ -49,29 +60,17 @@ def run(episodes=30,
 
     for ep in range(episodes):
         timer.reset()
+>>>>>>> master
         observation = env.reset()
-        # for i in range(agent.observation_space_size):
-        #     result_fetcher.add_to_array('state_' + str(i), observation[i])
 
         total_reward = 0
         print('Episode ', ep, '/', episodes - 1, 'started...', end='')
         for t in range(steps):
 
-            result_fetcher.reset_timers()
-
-            if not collecting_data:
-                env.render()
-
-            result_fetcher.sample_timer('render')  # ------
+            env.render()
 
             action = agent.act(observation)
 
-            result_fetcher.add_to_array('actions', action)  # -------
-
-            result_fetcher.sample_timer('act')  # ------
-
-            for i in range(agent.observation_space_size):
-                result_fetcher.add_to_array('state_' + str(i), observation[i])
             prev_observation = observation
             observation, reward, done, info = env.step(action)
 
@@ -82,15 +81,19 @@ def run(episodes=30,
                        'done': done,
                        't': t}
 
-            result_fetcher.sample_timer('step')  # ------
-            result_fetcher.add_to_array('count', 1)
-
-            # print('\n' + str(episode['obs']))
-            result_fetcher.start_timer('observe')
             agent.observe(episode)
-            result_fetcher.sample_timer('observe')  # ------
 
             total_reward += reward
+<<<<<<< HEAD
+            if done or (t == steps - 1):
+                t += 1
+                rewards.append(total_reward)
+                print('Reward:', total_reward, 'Steps:', t)
+                break
+
+    # end of episodes
+    print('Average rewards:', np.average(rewards))
+=======
             result_fetcher.add_to_array('done', 1 if done else 0)
 
             if done or (t == steps - 1):
@@ -117,6 +120,7 @@ def run(episodes=30,
 
     # result_fetcher.print_times(groups=['run_'])
     # result_fetcher.print_times(groups=['agent_'], total_time_field='count')
+>>>>>>> master
 
 
 if __name__ == '__main__':
