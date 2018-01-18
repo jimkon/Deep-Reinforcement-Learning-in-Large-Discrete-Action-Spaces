@@ -10,6 +10,7 @@ __pycache__
 # .py files
 clipboard.py
 example.py
+pyflann_timing.py
 
 # .pyc files
 *.pyc
@@ -18,6 +19,9 @@ example.py
 # results
 results
 data
+<<<<<<< HEAD
 default_name
 
 util
+=======
+>>>>>>> master

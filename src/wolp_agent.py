@@ -1,26 +1,39 @@
 import numpy as np
 import pyflann
-
+from gym.spaces import Box
 from ddpg import agent
 
 
 class WolpertingerAgent(agent.DDPGAgent):
 
-    def __init__(self, env, max_actions=1e6, k_nearest_neighbors=10):
+    def __init__(self, env, max_actions=1e6, k_ratio=0.1):
         super().__init__(env)
+        self.experiment = env.spec.id
         if self.continious_action_space:
-            self.actions = np.linspace(self.low, self.high, max_actions)
+            self.actions = self.quantize_action_space(self.low, self.high, max_actions)
         else:
             self.actions = np.arange(self.low, self.high)
+<<<<<<< HEAD
         # self.actions = list(self.actions)
         self.k_nearest_neighbors = k_nearest_neighbors
+=======
+
+        self.k_nearest_neighbors = int(max_actions * k_ratio)
+
+>>>>>>> master
         # init flann
         self.actions.shape = (len(self.actions), self.action_space_size)
         self.flann = pyflann.FLANN()
         params = self.flann.build_index(self.actions, algorithm='kdtree')
 
     def get_name(self):
-        return 'Wolp_v1_k' + str(self.k_nearest_neighbors) + '_' + super().get_name()
+        return 'Wolp3_{}k{}_{}'.format(len(self.actions), self.k_nearest_neighbors, self.experiment)
+
+    def quantize_action_space(self, low, high, max_actions):
+        return np.linspace(low, high, max_actions)
+
+    def get_action_space(self):
+        return self.actions
 
     def act(self, state):
         proto_action = super().act(state)

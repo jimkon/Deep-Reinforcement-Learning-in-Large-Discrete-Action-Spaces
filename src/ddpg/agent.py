@@ -32,11 +32,11 @@ class Agent:
             self.continious_action_space = True
             self.low = env.action_space.low
             self.high = env.action_space.high
-        else:
+        else:  # dont need in this implementation
             self.action_space_size = env.action_space.n
             self.continious_action_space = False
-            self.low = 0
-            self.high = env.action_space.n
+            self.low = [0]
+            self.high = [env.action_space.n]
 
     def act(self, state):
         pass
@@ -97,6 +97,7 @@ class DDPGAgent(Agent):
 
     def __init__(self, env, is_batch_norm=False, is_grad_inverter=True):
         super().__init__(env)
+        assert isinstance(env.action_space, Box), "action space must be continuous"
         if is_batch_norm:
             self.critic_net = CriticNet_bn(self.observation_space_size,
                                            self.action_space_size)
@@ -114,17 +115,30 @@ class DDPGAgent(Agent):
 
         self.time_step = 0
 
-        action_max = np.array(env.action_space.high).tolist()
-        action_min = np.array(env.action_space.low).tolist()
+        action_max = np.array(self.high).tolist()
+        action_min = np.array(self.low).tolist()
         action_bounds = [action_max, action_min]
         self.grad_inv = grad_inverter(action_bounds)
 
+<<<<<<< HEAD
+=======
+    def add_data_fetch(self, df):
+        self.data_fetch = df
+        self.data_fetch.add_timers(['ev_p_t', 'ev_q_t', 'y',
+                                    'train_q', 'train_p',
+                                    'up_q_t', 'up_p_t'],
+                                   prefix='t_agent_training_')
+        self.data_fetch.add_array('actors_result')
+
+>>>>>>> master
     def get_name(self):
         return 'DDPG' + super().get_name()
 
     def act(self, state):
         state = self._np_shaping(state, True)
-        return self.actor_net.evaluate_actor(state).astype(float)
+        result = self.actor_net.evaluate_actor(state).astype(float)
+        self.data_fetch.add_to_array('actors_result', result)
+        return result
 
     def observe(self, episode):
         episode['obs'] = self._np_shaping(episode['obs'], True)
