@@ -2,6 +2,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from random import randint
 
+"""pyplot wrapper for easier use"""
+
 
 class Line:
     def __init__(self, x, y, line_width=1, line_color=None, text='', style='-',

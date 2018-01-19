@@ -14,9 +14,7 @@ from tensorflow_grad_inverter import grad_inverter
 
 from collections import deque
 
-MAX_ACTION_SPACE_SIZE = 1e6
-
-# shaping input states and actions
+"""Some agent implementations including stevenpjg's DDPG agent"""
 
 
 class Agent:
@@ -186,7 +184,7 @@ class DDPGAgent(Agent):
         q_t = self.critic_net.evaluate_target_critic(state_2, target_action)
         self.data_fetch.sample_timer('ev_q_t')  # ------
 
-        y = []  # fix initialization of y
+        y = []
         for i in range(0, actual_batch_size):
 
             if done[i]:

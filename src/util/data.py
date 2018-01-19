@@ -3,6 +3,8 @@ import pickle
 from timer import *
 import os
 
+"""Data structure for data handling, timing, and storing."""
+
 
 class Data:
 
