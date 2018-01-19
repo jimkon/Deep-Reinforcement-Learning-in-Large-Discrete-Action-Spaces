@@ -68,7 +68,9 @@ def plot_data(data, batch_size=-1, file_name="data"):
     plt.subplot(212)
     # plt.plot(x_axis, stats, 'go-')
     # plt.grid(True)
-    plt.hist(reduced_data, 15, histtype='bar', facecolor='g', alpha=0.75,  rwidth=0.8)
+    hist = plt.hist(reduced_data, 15, histtype='bar', facecolor='g', alpha=0.75,  rwidth=0.8)
+    thousands = int(hist[0][len(hist[0]) - 1])
+    plt.annotate(str(thousands), xy=(940, int(thousands * 1.1)))
 
     plt.ylabel("Distribution")
     plt.xlabel("Value")
