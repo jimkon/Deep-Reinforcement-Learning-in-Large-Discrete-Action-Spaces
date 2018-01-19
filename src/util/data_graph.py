@@ -6,7 +6,6 @@ import ntpath
 
 BATCH_RATIO = 0.01
 EXTENSIONS = ['.txt']
-# DIRECTORY = "/home/jim/Desktop/dip/Deep-Reinforcement-Learning-in-Large-Discrete-Action-Spaces/data/saved_ddpg"
 DIRECTORY = "/../../data/saved_ddpg_new"
 
 
