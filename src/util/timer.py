@@ -1,5 +1,7 @@
 from time import time
 
+""" A timer object to time processed within milliseconds"""
+
 
 class Timer:
 

@@ -99,15 +99,17 @@ def plot_action_distribution(fd, batches=-1):
     batch_size = int(number_of_episodes / batches)
     eps = [int(item) for item in np.linspace(0, number_of_episodes, batches)]
     colors = np.linspace(0xbbbb11, 0x000011, batches - 1)
+    action_space_length = len(fd.get_data('action_space'))
     # color = 0xaaaaaa
     for i in range(batches - 1):
+        print('Batch', i, '-', i + 1)
         episodes = np.arange(eps[i], eps[i + 1])
         data = fd.get_episodes_data('actions', episodes)
 
         min_action = np.amin(data)
         max_action = np.amax(data)
 
-        y, x = np.histogram(data, bins=len(fd.get_data('action_space')), density=False)
+        y, x = np.histogram(data, bins=int(action_space_length * .1), density=False)
         # y, x = np.histogram(data, bins=6, density=True)
 
         x = np.linspace(min_action, max_action, len(y))
@@ -238,6 +240,9 @@ class Agent_data(Data):
             self.save(path=save_to)
         except Exception as e:
             print("Failed to open and modify " + self.name)
+
+    def get_number_of_episodes(self):
+        return len(self.get_data('done'))
 
     def get_episodes_with_reward_greater_than(self, th):
         return np.where(self.get_data('rewards') >= th)[0]

@@ -6,6 +6,13 @@ import util.my_plotlib as mplt
 from util.data_graph import plot_3d_points
 
 
+"""
+    This class represents a n-dimensional cube with a specific number of points embeded.
+    Points are distributed uniformly in the initialization. A search can be made using the
+    search_point function that returns the k (given) nearest neighbors of the input point.
+"""
+
+
 class Space:
 
     def __init__(self, low, high, points):
@@ -90,20 +97,3 @@ def init_uniform_space(low, high, points):
         space.append(list(_))
 
     return np.array(space)
-
-
-if __name__ == '__main__':
-
-    max_points = 36
-    # s = Space([-1], [1], max_points)
-    s = Space([-1, -2], [1, 2], max_points)
-    # s = Space([-1, -2, -3], [1, 2, 3], max_points)
-    # s = Space([-1, -2, -3, -4], [1, 2, 3, 4], max_points)
-    # s = Space([-1, -2, -3, -4, -5], [1, 2, 3, 4, 5], max_points)
-    # s = Space([-1, -2, -3, -4, -5, -6], [1, 2, 3, 4, 5, 6], max_points)
-
-    # print(s.get_space())
-    # print(s.shape())
-
-    search_point = np.array([[-0.7, 1.2]])
-    print(s.search_point(search_point, 10))
