@@ -112,11 +112,6 @@ def run(episodes=2500,
     print('Run {} episodes in {} seconds and got {} average reward'.format(
         episodes, time / 1000, reward_sum / episodes))
 
-    # printing average times for running and training steps
-    data_fetcher.print_times(groups=['run_'])
-    data_fetcher.print_times(groups=['agent_'], total_time_field='count')
-
-    #
     data_fetcher.save()
 
 
