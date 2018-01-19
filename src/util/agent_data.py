@@ -283,12 +283,13 @@ class Agent_data(Data):
     def get_number_of_episodes(self):
         return len(self.get_data('rewards'))
 
-    def get_adaption_episode(self, reward_threshold=50):
-        eps = self.get_episodes_with_reward_greater_than(reward_threshold)
-        if len(eps) > 0:
-            return eps[0]
-        else:
-            return -1
+    def get_adaption_episode(self, reward_threshold=10):
+        rewards = self.get_data('rewards')
+        total = 0
+        for i in range(len(rewards)):
+            total += rewards[i]
+            if total / (i + 1) > reward_threshold:
+                return i
 
     def get_adaption_time(self, reward_threshold=50):
         first_increase = self.get_adaption_episode(reward_threshold)

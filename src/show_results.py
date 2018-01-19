@@ -13,20 +13,18 @@ def show():
     experiment = 'InvertedPendulum-v1'
     v = 3
 
-    name = '{}data_{}_Wolp{}_{}k{}_{}'.format(folder,
-                                              episodes,
-                                              v,
-                                              actions,
-                                              k,
-                                              experiment
-                                              )
+    name = '{}data_{}_Wolp{}_{}k{}_{}_shrinked'.format(folder,
+                                                       episodes,
+                                                       v,
+                                                       actions,
+                                                       k,
+                                                       experiment
+                                                       )
 
     fd = Agent_data(name)
 
     fd.load()
-    # printing average times for running and training steps
-    # fd.print_times(other_keys=fd.get_keys('run'))
-    # fd.print_times(other_keys=fd.get_keys('agent_'), total_time_field='count')
+
     plot_rewards(fd)
 
     plot_average_reward(fd)

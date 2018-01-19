@@ -12,7 +12,7 @@ from util.data import Timer
 AUTO_SAVE_AFTER_EPISODES = 500
 
 
-def run(episodes=2500,
+def run(episodes=250,
         collecting_data=False,
         experiment='InvertedPendulum-v1',
         max_actions=1e3,
@@ -113,6 +113,10 @@ def run(episodes=2500,
         episodes, time / 1000, reward_sum / episodes))
 
     data_fetcher.save()
+
+    # printing average times for running and training steps
+    data_fetcher.print_times(other_keys=data_fetcher.get_keys('run'))
+    data_fetcher.print_times(other_keys=data_fetcher.get_keys('agent_'), total_time_field='count')
 
 
 if __name__ == '__main__':
