@@ -68,7 +68,7 @@ def plot_actions(fd, episodes=None, action_space_flag=False):
             data.extend(fd.get_episode_data('actions', ep))
             seps.append(len(data) - 0.5)
 
-    if len(seps) == 1:
+    if len(seps) == 1 or len(seps) > 1000:
         seps = []
     x = np.arange(len(data))
     if action_space_flag:
