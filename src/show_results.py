@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 import numpy as np
 from util.my_plotlib import *
 from util.data import *
