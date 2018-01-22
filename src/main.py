@@ -12,8 +12,8 @@ from util.data import Timer
 AUTO_SAVE_AFTER_EPISODES = 500
 
 
-def run(episodes=250,
-        collecting_data=False,
+def run(episodes=2500,
+        render=False,
         experiment='InvertedPendulum-v1',
         max_actions=1e3,
         knn=0.1):
@@ -58,7 +58,7 @@ def run(episodes=250,
 
             data_fetcher.reset_timers()
 
-            if not collecting_data:
+            if render:
                 env.render()
 
             data_fetcher.sample_timer('render')  # ------
