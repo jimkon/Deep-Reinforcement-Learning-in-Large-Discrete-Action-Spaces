@@ -102,7 +102,6 @@ def plot_action_distribution(fd, batches=-1):
     eps = [int(item) for item in np.linspace(0, number_of_episodes, batches)]
     colors = np.linspace(0xbbbb11, 0x000011, batches - 1)
     action_space_length = len(fd.get_data('action_space'))
-    # color = 0xaaaaaa
     for i in range(batches - 1):
         print('Batch', i, '-', i + 1)
         episodes = np.arange(eps[i], eps[i + 1])
@@ -111,7 +110,7 @@ def plot_action_distribution(fd, batches=-1):
         min_action = np.amin(data)
         max_action = np.amax(data)
 
-        y, x = np.histogram(data, bins=int(action_space_length * .1), density=False)
+        y, x = np.histogram(data, bins=math.ceil(action_space_length * .1), density=False)
         # y, x = np.histogram(data, bins=6, density=True)
 
         x = np.linspace(min_action, max_action, len(y))
@@ -146,6 +145,8 @@ def plot_actions_statistics(fd):
     sum_probs = [0.8, 0.9, 0.99]
     for p in sum_probs:
         x_p = np.where(sum_y < p)[0]
+        if len(x_p) < 1:
+            continue
         x_p = x_p[len(x_p) - 1] + 1
         lines.append(Line(x_p, p, line_color='o',
                           text='{} ({} actions)'.format(p, x_p)))
@@ -290,6 +291,7 @@ class Agent_data(Data):
             total += rewards[i]
             if total / (i + 1) > reward_threshold:
                 return i
+        return -1
 
     def get_adaption_time(self, reward_threshold=50):
         first_increase = self.get_adaption_episode(reward_threshold)
