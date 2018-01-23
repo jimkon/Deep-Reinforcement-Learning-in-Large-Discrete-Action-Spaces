@@ -67,7 +67,7 @@ def plot_data(data, batch_size=-1, file_name="data"):
     plt.subplot(212)
     # plt.plot(x_axis, stats, 'go-')
     # plt.grid(True)
-    hist = plt.hist(reduced_data, 15, histtype='bar', facecolor='g', alpha=0.75,  rwidth=0.8)
+    hist = plt.hist(reduced_data, 10, histtype='bar', facecolor='g', alpha=0.75,  rwidth=0.8)
     max_values = int(hist[0][len(hist[0]) - 1])
     x_max_values = int(hist[1][len(hist[0]) - 1])
     plt.annotate(str(max_values), xy=(x_max_values, int(max_values * 1.1)))
