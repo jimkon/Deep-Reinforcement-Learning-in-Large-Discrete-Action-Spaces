@@ -32,18 +32,36 @@ def plot_average_reward(fd):
     rewards = fd.get_data('rewards')
     batch_size = max(1, int(len(rewards) / 100))
     batches = data_graph.break_into_batches(rewards, batch_size)
-    sum = 0
+    adaption_episode = fd.get_adaption_episode()
+
+    total = 0
     avg = []
     count = 0
+
+    total_adaption_ignored = 0
+    avg_adaption_ignored = []
+    count_adaption_ignored = 0
+
     for batch in batches:
-        sum += np.sum(batch)
+        batch_sum = np.sum(batch)
+        total += batch_sum
         count += batch_size
-        avg.append(sum / count)
+        avg.append(total / count)
+        if adaption_episode > 0:
+            if count > adaption_episode:
+                total_adaption_ignored += batch_sum
+                count_adaption_ignored += batch_size
+                avg_adaption_ignored.append(total_adaption_ignored / count_adaption_ignored)
+            else:
+                avg_adaption_ignored.append(0)
 
     x = np.arange(len(avg)) * batch_size
     lines = [Line(x, avg, text='avg=' + str(avg[len(avg) - 1]), line_color='m')]
 
-    adaption_episode = fd.get_adaption_episode()
+    if adaption_episode > 0:
+        lines.append(Line(x, avg_adaption_ignored,
+                          text='avg(ignore adaption)=' + str(avg_adaption_ignored[len(avg_adaption_ignored) - 1]), line_color='r'))
+
     # fit in x axis
     adaption_episode = int(round(adaption_episode / batch_size) * batch_size)
     lines.append(Line(adaption_episode,
