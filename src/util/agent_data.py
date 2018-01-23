@@ -45,7 +45,7 @@ def plot_average_reward(fd):
     for batch in batches:
         batch_sum = np.sum(batch)
         total += batch_sum
-        count += batch_size
+        count += len(batch)
         avg.append(total / count)
         if adaption_episode > 0:
             if count > adaption_episode:
@@ -107,6 +107,36 @@ def plot_actions(fd, episodes=None, action_space_flag=False):
     lines.append(Line(x, data, line_color='-o', line_width=0.5, text='discrete action'))
     plot_lines(lines, seps, grid_flag=not action_space_flag,
                axis_labels={'y': 'action space', 'x': 'steps'})
+
+
+def plot_actions_error(fd):
+    lines = []
+
+    actions = fd.get_data('actions')
+    cont_actions = fd.get_data('actors_result')
+    result = np.abs(actions - cont_actions)
+
+    batch_size = max(1, int(len(result) / 50))
+    batches = data_graph.break_into_batches(result, batch_size)
+    avg = []
+    total = 0
+    count = 0
+    for batch in batches:
+        total = np.sum(batch)
+        count = len(batch)
+        avg.append(total / count)
+    x = np.arange(len(avg)) * batch_size
+    lines.append(Line(x, avg, text='average', line_color='b'))
+
+    adt = fd.get_adaption_time()
+    if adt > 0:
+        adt = int(round(adt / batch_size) * batch_size)
+        lines.append(Line(adt,
+                          avg[int(round(adt / batch_size))],
+                          line_color='o',
+                          text='adaption time'))
+
+    plot_lines(lines)
 
 
 def plot_action_distribution(fd, batches=-1):
