@@ -121,10 +121,6 @@ class DDPGAgent(Agent):
 
     def add_data_fetch(self, df):
         self.data_fetch = df
-        self.data_fetch.add_timers(['ev_p_t', 'ev_q_t', 'y',
-                                    'train_q', 'train_p',
-                                    'up_q_t', 'up_p_t'],
-                                   prefix='t_agent_training_')
         self.data_fetch.add_array('actors_result')
 
     def get_name(self):
@@ -176,13 +172,10 @@ class DDPGAgent(Agent):
 
         actual_batch_size = len(state)
 
-        self.data_fetch.reset_timers()
         target_action = self.actor_net.evaluate_target_actor(state)
-        self.data_fetch.sample_timer('ev_p_t')  # ------
 
         # Q'(s_i+1,a_i+1)
         q_t = self.critic_net.evaluate_target_critic(state_2, target_action)
-        self.data_fetch.sample_timer('ev_q_t')  # ------
 
         y = []
         for i in range(0, actual_batch_size):
@@ -193,11 +186,10 @@ class DDPGAgent(Agent):
                 y.append(reward[i] + type(self).GAMMA * q_t[i][0])  # q_t+1 instead of q_t
 
         y = np.reshape(np.array(y), [len(y), 1])
-        self.data_fetch.sample_timer('y')  # ------
 
         # Update critic by minimizing the loss
         self.critic_net.train_critic(state, action, y)
-        self.data_fetch.sample_timer('train_q')  # ------
+
         # Update actor proportional to the gradients:
         # action_for_delQ = self.act(state)  # was self.evaluate_actor instead of self.act
         action_for_delQ = self.actor_net.evaluate_actor(state)  # dont need wolp action
@@ -210,10 +202,7 @@ class DDPGAgent(Agent):
 
         # train actor network proportional to delQ/dela and del_Actor_model/del_actor_parameters:
         self.actor_net.train_actor(state, del_Q_a)
-        self.data_fetch.sample_timer('train_p')  # ------
 
         # Update target Critic and actor network
         self.critic_net.update_target_critic()
-        self.data_fetch.sample_timer('up_q_t')  # ------
         self.actor_net.update_target_actor()
-        self.data_fetch.sample_timer('up_p_t')  # ------
