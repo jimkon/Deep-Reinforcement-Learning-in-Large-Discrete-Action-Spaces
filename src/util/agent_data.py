@@ -52,21 +52,20 @@ def plot_average_reward(fd):
                 total_adaption_ignored += batch_sum
                 count_adaption_ignored += batch_size
                 avg_adaption_ignored.append(total_adaption_ignored / count_adaption_ignored)
-            else:
-                avg_adaption_ignored.append(0)
 
     x = np.arange(len(avg)) * batch_size
     lines = [Line(x, avg, text='avg=' + str(avg[len(avg) - 1]), line_color='m')]
 
     if adaption_episode > 0:
-        lines.append(Line(x, avg_adaption_ignored,
+        x_adt = adaption_episode + np.arange(len(avg_adaption_ignored)) * batch_size
+        lines.append(Line(x_adt, avg_adaption_ignored,
                           text='avg(ignore adaption)=' + str(avg_adaption_ignored[len(avg_adaption_ignored) - 1]), line_color='r'))
 
     # fit in x axis
-    adaption_episode = int(round(adaption_episode / batch_size) * batch_size)
-    lines.append(Line(adaption_episode,
-                      avg[int(round(adaption_episode / batch_size))],
-                      line_color='o',
+    # adaption_episode = int(round(adaption_episode / batch_size) * batch_size)
+    lines.append(Line([adaption_episode, adaption_episode],
+                      [0, avg_adaption_ignored[0]],
+                      line_color='b--',
                       text='adaption time={} steps({} episodes)'.format(
                           fd.get_adaption_time(), adaption_episode)))
 
@@ -332,14 +331,19 @@ class Agent_data(Data):
     def get_number_of_episodes(self):
         return len(self.get_data('rewards'))
 
-    def get_adaption_episode(self, reward_threshold=10):
+    # searches for the first window with average greater than the threshold
+    def get_adaption_episode(self, reward_threshold=10, window=20):
         rewards = self.get_data('rewards')
         total = 0
-        for i in range(len(rewards)):
-            total += rewards[i]
-            if total / (i + 1) > reward_threshold:
-                return i
-        return -1
+        if len(rewards) > window:
+            total = np.sum(rewards[:window])
+
+        i = 0
+        while i < len(rewards) - window and total / window <= reward_threshold:
+            total += rewards[i + window - 1] - rewards[i]
+            i += 1
+
+        return i
 
     def get_adaption_time(self, reward_threshold=50):
         first_increase = self.get_adaption_episode(reward_threshold)
