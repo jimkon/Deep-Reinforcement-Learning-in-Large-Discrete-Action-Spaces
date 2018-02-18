@@ -91,12 +91,8 @@ class Data:
         self.episode_id += 1
         self.episode['id'] = self.episode_id
 
-    def store_episode(self):
-        # self.batch_current_size += sys.getsizeof(str(self.episode))
-        # print(sys.getsizeof(str(self.episode)), self.batch_current_size)
-
+    def finish_and_store_episode(self):
         self.end_of_episode()
-
         if sys.getsizeof(str(self.data)) > self.AUTOSAVE_BATCH_SIZE:
             self.temp_save()
 
@@ -120,7 +116,7 @@ class Data:
         return self.data['experiment']['name']
 
     def print_data(self):
-        print(json.dumps(self.data, indent=2))
+        print(json.dumps(self.data, indent=2, sort_keys=True))
 
     def merge(self, data_in):
         if type(data_in) is Data:
@@ -168,7 +164,7 @@ class Data:
 
         final_file_name = self.PATH + path + self.get_file_name() + '.json'
         with open(final_file_name, 'w') as f:
-            json.dump(self.data, f, indent=2)
+            json.dump(self.data, f, indent=2, sort_keys=final_save)
             print('Data: SAVE', final_file_name)
 
     def temp_save(self):
@@ -195,7 +191,7 @@ if __name__ == '__main__':
         d.set_ndn_action([i, i])
         d.set_reward([i, i])
         if i % 3 == 0:
-            d.store_episode()
+            d.finish_and_store_episode()
             # d.temp_save()
 
     for i in range(30, 40):
@@ -205,7 +201,7 @@ if __name__ == '__main__':
         d.set_ndn_action([i, i])
         d.set_reward([i, i])
         if i % 5 == 0:
-            d.store_episode()
+            d.finish_and_store_episode()
             # d.temp_save()
     #
 

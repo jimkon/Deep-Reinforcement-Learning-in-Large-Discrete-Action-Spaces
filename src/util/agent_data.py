@@ -1,6 +1,6 @@
 import numpy as np
 from my_plotlib import *
-from data import *
+from data_old import *
 import math
 import data_graph
 import gym
