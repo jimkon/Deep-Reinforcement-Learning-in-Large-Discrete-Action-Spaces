@@ -1,15 +1,20 @@
 #!/usr/bin/python3
 import json
+import os
+import sys
 
 
 def load(file_name):
     data = Data()
     with open(file_name, 'r') as f:
-        data.merge(json.load(f))
+        data.set_data(json.load(f))
     return data
 
 
 class Data:
+
+    PATH = 'results/obj/'
+    AUTOSAVE_BATCH_SIZE = 1e6  # 1 mB
 
     DATA_TEMPLATE = '''
     {
@@ -35,6 +40,7 @@ class Data:
 
     EPISODE_TEMPLATE = '''
     {
+        "id":0,
         "states":[],
         "actions":[],
         "actors_actions":[],
@@ -46,6 +52,7 @@ class Data:
     def __init__(self):
         self.data = json.loads(self.DATA_TEMPLATE)
         self.episode = json.loads(self.EPISODE_TEMPLATE)
+        self.episode_id = 0
         self.temp_saves = 0
 
     def set_id(self, n):
@@ -81,6 +88,17 @@ class Data:
     def end_of_episode(self):
         self.data['simulation']['episodes'].append(self.episode)
         self.episode = json.loads(self.EPISODE_TEMPLATE)
+        self.episode_id += 1
+        self.episode['id'] = self.episode_id
+
+    def store_episode(self):
+        # self.batch_current_size += sys.getsizeof(str(self.episode))
+        # print(sys.getsizeof(str(self.episode)), self.batch_current_size)
+
+        self.end_of_episode()
+
+        if sys.getsizeof(str(self.data)) > self.AUTOSAVE_BATCH_SIZE:
+            self.temp_save()
 
     def get_file_name(self):
         return 'data_{}_{}_{}#{}'.format(self.get_episodes(),
@@ -110,18 +128,19 @@ class Data:
         else:
             data = data_in
 
-        self.set_id(data['id'])
-
-        self.set_agent(data['agent']['name'],
-                       data['agent']['max_actions'],
-                       data['agent']['k'],
-                       data['agent']['version'])
-        self.set_experiment(data['experiment']['name'],
-                            data['experiment']['actions_low'],
-                            data['experiment']['actions_high'],
-                            data['experiment']['number_of_episodes'])
+        # self.set_id(data['id'])
+        #
+        # self.set_agent(data['agent']['name'],
+        #                data['agent']['max_actions'],
+        #                data['agent']['k'],
+        #                data['agent']['version'])
+        # self.set_experiment(data['experiment']['name'],
+        #                     data['experiment']['actions_low'],
+        #                     data['experiment']['actions_high'],
+        #                     data['experiment']['number_of_episodes'])
 
         for ep in data['simulation']['episodes']:
+            self.episode['id'] = ep['id']
             self.set_state(ep['states'])
             self.set_action(ep['actions'])
             self.set_actors_action(ep['actors_actions'])
@@ -129,27 +148,46 @@ class Data:
             self.set_reward(ep['rewards'])
             self.end_of_episode()
 
+    def set_data(self, data):
+        self.data = data
+
     def save(self, path='', final_save=True):
-        with open(path + self.get_file_name() + '.json', 'w') as f:
+        if final_save and self.temp_saves > 0:
+            self.end_of_episode()
+            self.temp_save()
+            for i in range(self.temp_saves):
+                file_name = '{}temp/{}{}.json'.format(self.PATH,
+                                                      i,
+                                                      self.get_file_name())
+                # print(file_name)
+                temp_data = load(file_name)
+                # temp_data.print_data()
+                # print('^^^^^^^^^^^^')
+                self.merge(temp_data)
+                os.remove(file_name)
+
+        final_file_name = self.PATH + path + self.get_file_name() + '.json'
+        with open(final_file_name, 'w') as f:
             json.dump(self.data, f, indent=2)
+            print('Data: SAVE', final_file_name)
 
     def temp_save(self):
         self.save(path='temp/' + str(self.temp_saves), final_save=False)
         self.temp_saves += 1
-        self.data = json.loads(self.DATA_TEMPLATE)
+        self.data['simulation']['episodes'] = []  # reset
 
 
 if __name__ == '__main__':
 
     import numpy as np
 
-    # d = load('data_10000_agent_name4_exp_name#0.json')
+    # d = load('results/obj/data_10000_agent_name4_exp_name#0.json')
     d = Data()
     d.set_agent('agent_name', 1000, 10, 4)
     d.set_experiment('exp_name', [-2, -3], [3, 2], 10000)
-    #
-    d.print_data()
 
+    # d.print_data()
+    #
     for i in range(10):
         d.set_state([i, i, i, i])
         d.set_action([i, i])
@@ -157,7 +195,19 @@ if __name__ == '__main__':
         d.set_ndn_action([i, i])
         d.set_reward([i, i])
         if i % 3 == 0:
-            d.end_of_episode()
+            d.store_episode()
+            # d.temp_save()
+
+    for i in range(30, 40):
+        d.set_state([i, i, i, i])
+        d.set_action([i, i])
+        d.set_actors_action([i, i])
+        d.set_ndn_action([i, i])
+        d.set_reward([i, i])
+        if i % 5 == 0:
+            d.store_episode()
+            # d.temp_save()
+    #
 
     d.print_data()
     d.save()
