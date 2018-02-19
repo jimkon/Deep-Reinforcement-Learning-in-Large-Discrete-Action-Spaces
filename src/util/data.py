@@ -1,13 +1,22 @@
 #!/usr/bin/python3
 import json
 import os
+from os.path import splitext, basename
 import sys
+import zipfile
 
 
 def load(file_name):
     data = Data()
-    with open(file_name, 'r') as f:
-        data.set_data(json.load(f))
+    if zipfile.is_zipfile(file_name):
+        print('Data: Unziping ', file_name, '...')
+        with zipfile.ZipFile(file_name) as myzip:
+            string = (myzip.read(myzip.namelist()[0]).decode("utf-8"))
+            data.set_data(json.loads(string))
+    else:
+        print('Data: Loading ', file_name, '...')
+        with open(file_name, 'r') as f:
+            data.set_data(json.load(f))
     return data
 
 
@@ -93,14 +102,17 @@ class Data:
 
     def finish_and_store_episode(self):
         self.end_of_episode()
+        print(sys.getsizeof(str(self.data)) / self.AUTOSAVE_BATCH_SIZE)
         if sys.getsizeof(str(self.data)) > self.AUTOSAVE_BATCH_SIZE:
             self.temp_save()
 
     def get_file_name(self):
-        return 'data_{}_{}_{}#{}'.format(self.get_episodes(),
-                                         self.get_agent_name(),
-                                         self.get_experiment(),
-                                         self.get_id())
+        return 'data_{}_{}_{}{}k{}#{}'.format(self.get_episodes(),
+                                              self.get_agent_name(),
+                                              self.get_experiment()[:3],
+                                              self.data['agent']['max_actions'],
+                                              self.data['agent']['k'],
+                                              self.get_id())
 
     def get_episodes(self):
         return self.data['experiment']['number_of_episodes']
@@ -117,6 +129,14 @@ class Data:
 
     def print_data(self):
         print(json.dumps(self.data, indent=2, sort_keys=True))
+
+    def print_stats(self):
+        for key in self.data.keys():
+            d = self.data[key]
+            if key == 'simulation':
+                print('episodes:', len(d['episodes']))
+            else:
+                print(json.dumps(d, indent=2, sort_keys=True))
 
     def merge(self, data_in):
         if type(data_in) is Data:
@@ -151,6 +171,7 @@ class Data:
         if final_save and self.temp_saves > 0:
             self.end_of_episode()
             self.temp_save()
+            print('Data: Merging all temporary files')
             for i in range(self.temp_saves):
                 file_name = '{}temp/{}{}.json'.format(self.PATH,
                                                       i,
@@ -163,9 +184,15 @@ class Data:
                 os.remove(file_name)
 
         final_file_name = self.PATH + path + self.get_file_name() + '.json'
-        with open(final_file_name, 'w') as f:
-            json.dump(self.data, f, indent=2, sort_keys=final_save)
-            print('Data: SAVE', final_file_name)
+        if final_save:
+            print('Data: Ziping', final_file_name)
+            with zipfile.ZipFile(final_file_name + '.zip', 'w', zipfile.ZIP_DEFLATED) as myzip:
+                myzip.writestr(basename(final_file_name), json.dumps(
+                    self.data, indent=2, sort_keys=True))
+        else:
+            with open(final_file_name, 'w') as f:
+                print('Data: Saving', final_file_name)
+                json.dumps(self.data, f)
 
     def temp_save(self):
         self.save(path='temp/' + str(self.temp_saves), final_save=False)
@@ -177,33 +204,36 @@ if __name__ == '__main__':
 
     import numpy as np
 
-    # d = load('results/obj/data_10000_agent_name4_exp_name#0.json')
-    d = Data()
-    d.set_agent('agent_name', 1000, 10, 4)
-    d.set_experiment('exp_name', [-2, -3], [3, 2], 10000)
+    d = load('results/obj/saved/data_10001_Wolp3_InvertedPendulum-v1#0.json.zip')
+    # d = load('results/obj/saved/data_10000_agent_name4_exp_name#0.json.zip')
+    print(d.get_file_name())
+    # d = load('results/obj/data_10000_agent_name4_exp_name#0.json.zip')
+    # d = Data()
+    # d.set_agent('agent_name', 1000, 10, 4)
+    # d.set_experiment('exp_name', [-2, -3], [3, 2], 10000)
+    #
+    # # d.print_data()
+    # #
+    # for i in range(10):
+    #     d.set_state([i, i, i, i])
+    #     d.set_action([i, i])
+    #     d.set_actors_action([i, i])
+    #     d.set_ndn_action([i, i])
+    #     d.set_reward([i, i])
+    #     if i % 3 == 0:
+    #         d.finish_and_store_episode()
+    #         # d.temp_save()
+    #
+    # for i in range(30, 40):
+    #     d.set_state([i, i, i, i])
+    #     d.set_action([i, i])
+    #     d.set_actors_action([i, i])
+    #     d.set_ndn_action([i, i])
+    #     d.set_reward([i, i])
+    #     if i % 5 == 0:
+    #         d.finish_and_store_episode()
+    #         # d.temp_save()
+    # #
 
     # d.print_data()
-    #
-    for i in range(10):
-        d.set_state([i, i, i, i])
-        d.set_action([i, i])
-        d.set_actors_action([i, i])
-        d.set_ndn_action([i, i])
-        d.set_reward([i, i])
-        if i % 3 == 0:
-            d.finish_and_store_episode()
-            # d.temp_save()
-
-    for i in range(30, 40):
-        d.set_state([i, i, i, i])
-        d.set_action([i, i])
-        d.set_actors_action([i, i])
-        d.set_ndn_action([i, i])
-        d.set_reward([i, i])
-        if i % 5 == 0:
-            d.finish_and_store_episode()
-            # d.temp_save()
-    #
-
-    d.print_data()
-    d.save()
+    # d.save()
