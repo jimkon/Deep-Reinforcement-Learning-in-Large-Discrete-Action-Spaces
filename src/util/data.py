@@ -108,7 +108,7 @@ class Data:
 
     def get_file_name(self):
         return 'data_{}_{}_{}{}k{}#{}'.format(self.get_episodes(),
-                                              self.get_agent_name(),
+                                              self.get_agent_name()[:4],
                                               self.get_experiment()[:3],
                                               self.data['agent']['max_actions'],
                                               self.data['agent']['k'],

@@ -9,18 +9,18 @@ import util.data_graph
 def show():
     folder = 'saved/'
     episodes = 10000
-    actions = 1000
-    k = 100
+    actions = 10
+    k = 10
     experiment = 'InvertedPendulum-v1'
     v = 3
 
-    name = '{}data_{}_Wolp{}_{}k{}_{}_shrinked'.format(folder,
-                                                       episodes,
-                                                       v,
-                                                       actions,
-                                                       k,
-                                                       experiment
-                                                       )
+    name = '{}data_{}_Wolp{}_{}k{}_{}'.format(folder,
+                                              episodes,
+                                              v,
+                                              actions,
+                                              k,
+                                              experiment
+                                              )
 
     fd = Agent_data(name)
 
@@ -29,6 +29,7 @@ def show():
     plot_rewards(fd)
 
     plot_average_reward(fd)
+    exit()
 
     print('Printing action distribution... This might take a while. # of actions:',
           len(fd.get_data('actions')))
