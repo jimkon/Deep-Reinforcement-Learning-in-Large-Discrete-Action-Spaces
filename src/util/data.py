@@ -2,7 +2,6 @@
 import json
 import os
 from os.path import splitext, basename
-import sys
 import zipfile
 
 
@@ -103,7 +102,7 @@ class Data:
     def finish_and_store_episode(self):
         self.end_of_episode()
         print(sys.getsizeof(str(self.data)) / self.AUTOSAVE_BATCH_SIZE)
-        if sys.getsizeof(str(self.data)) > self.AUTOSAVE_BATCH_SIZE:
+        if len(str(self.data)) > self.AUTOSAVE_BATCH_SIZE:
             self.temp_save()
 
     def get_file_name(self):
@@ -192,7 +191,7 @@ class Data:
         else:
             with open(final_file_name, 'w') as f:
                 print('Data: Saving', final_file_name)
-                json.dumps(self.data, f)
+                json.dump(self.data, f)
 
     def temp_save(self):
         self.save(path='temp/' + str(self.temp_saves), final_save=False)
@@ -204,36 +203,37 @@ if __name__ == '__main__':
 
     import numpy as np
 
-    d = load('results/obj/saved/data_10001_Wolp3_InvertedPendulum-v1#0.json.zip')
-    # d = load('results/obj/saved/data_10000_agent_name4_exp_name#0.json.zip')
-    print(d.get_file_name())
+    # d = load('results/obj/saved/data_10001_Wolp3_InvertedPendulum-v1#0.json.zip')
+    # # d = load('results/obj/saved/data_10000_agent_name4_exp_name#0.json.zip')
+    # print(d.get_file_name())
     # d = load('results/obj/data_10000_agent_name4_exp_name#0.json.zip')
-    # d = Data()
-    # d.set_agent('agent_name', 1000, 10, 4)
-    # d.set_experiment('exp_name', [-2, -3], [3, 2], 10000)
-    #
-    # # d.print_data()
-    # #
-    # for i in range(10):
-    #     d.set_state([i, i, i, i])
-    #     d.set_action([i, i])
-    #     d.set_actors_action([i, i])
-    #     d.set_ndn_action([i, i])
-    #     d.set_reward([i, i])
-    #     if i % 3 == 0:
-    #         d.finish_and_store_episode()
-    #         # d.temp_save()
-    #
-    # for i in range(30, 40):
-    #     d.set_state([i, i, i, i])
-    #     d.set_action([i, i])
-    #     d.set_actors_action([i, i])
-    #     d.set_ndn_action([i, i])
-    #     d.set_reward([i, i])
-    #     if i % 5 == 0:
-    #         d.finish_and_store_episode()
-    #         # d.temp_save()
-    # #
+    d = Data()
+    d.set_agent('agent_name', 1000, 10, 4)
+    d.set_experiment('exp_name', [-2, -3], [3, 2], 10000)
 
     # d.print_data()
-    # d.save()
+    #
+    for i in range(10):
+        d.set_state([i, i, i, i])
+        d.set_action([i, i])
+        d.set_actors_action([i, i])
+        d.set_ndn_action([i, i])
+        d.set_reward(i)
+        if i % 3 == 0:
+            d.finish_and_store_episode()
+            d.temp_save()
+            # exit()
+
+    for i in range(30, 40):
+        d.set_state([i, i, i, i])
+        d.set_action([i, i])
+        d.set_actors_action([i, i])
+        d.set_ndn_action([i, i])
+        d.set_reward(i)
+        if i % 5 == 0:
+            d.finish_and_store_episode()
+            d.temp_save()
+    #
+
+    # d.print_data()
+    d.save()
