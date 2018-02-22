@@ -121,7 +121,6 @@ class DDPGAgent(Agent):
 
     def add_data_fetch(self, df):
         self.data_fetch = df
-        self.data_fetch.add_array('actors_result')
 
     def get_name(self):
         return 'DDPG' + super().get_name()
@@ -129,7 +128,7 @@ class DDPGAgent(Agent):
     def act(self, state):
         state = self._np_shaping(state, True)
         result = self.actor_net.evaluate_actor(state).astype(float)
-        self.data_fetch.add_to_array('actors_result', result)
+        self.data_fetch.set_actors_action(result[0].tolist())
         return result
 
     def observe(self, episode):
