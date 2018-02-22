@@ -22,7 +22,7 @@ def load(file_name):
 class Data:
 
     PATH = 'results/obj/'
-    AUTOSAVE_BATCH_SIZE = 1e6  # 1 mB
+    AUTOSAVE_BATCH_SIZE = 1e5  # 1 mB
 
     DATA_TEMPLATE = '''
     {
@@ -62,6 +62,10 @@ class Data:
         self.episode = json.loads(self.EPISODE_TEMPLATE)
         self.episode_id = 0
         self.temp_saves = 0
+        self.data_added = 0
+
+    def __increase_data_counter(self, n=1):
+        self.data_added += n
 
     def set_id(self, n):
         self.data['id'] = n
@@ -80,18 +84,23 @@ class Data:
 
     def set_state(self, state):
         self.episode['states'].append(state)
+        self.__increase_data_counter(len(state))
 
     def set_action(self, action):
         self.episode['actions'].append(action)
+        self.__increase_data_counter(len(action))
 
     def set_actors_action(self, action):
         self.episode['actors_actions'].append(action)
+        self.__increase_data_counter(len(action))
 
     def set_ndn_action(self, action):
         self.episode['ndn_actions'].append(action)
+        self.__increase_data_counter(len(action))
 
     def set_reward(self, reward):
         self.episode['rewards'].append(reward)
+        self.__increase_data_counter()
 
     def end_of_episode(self):
         self.data['simulation']['episodes'].append(self.episode)
@@ -101,13 +110,13 @@ class Data:
 
     def finish_and_store_episode(self):
         self.end_of_episode()
-        print(sys.getsizeof(str(self.data)) / self.AUTOSAVE_BATCH_SIZE)
-        if len(str(self.data)) > self.AUTOSAVE_BATCH_SIZE:
+        # print(self.data_added / self.AUTOSAVE_BATCH_SIZE)
+        if self.data_added > self.AUTOSAVE_BATCH_SIZE:
             self.temp_save()
 
     def get_file_name(self):
         return 'data_{}_{}_{}{}k{}#{}'.format(self.get_episodes(),
-                                              self.get_agent_name()[:4],
+                                              self.get_agent_name(),
                                               self.get_experiment()[:3],
                                               self.data['agent']['max_actions'],
                                               self.data['agent']['k'],
@@ -117,7 +126,7 @@ class Data:
         return self.data['experiment']['number_of_episodes']
 
     def get_agent_name(self):
-        return '{}{}'.format(self.data['agent']['name'],
+        return '{}{}'.format(self.data['agent']['name'][:4],
                              self.data['agent']['version'])
 
     def get_id(self):
@@ -194,14 +203,18 @@ class Data:
                 json.dump(self.data, f)
 
     def temp_save(self):
+        if self.data_added == 0:
+            return
         self.save(path='temp/' + str(self.temp_saves), final_save=False)
         self.temp_saves += 1
         self.data['simulation']['episodes'] = []  # reset
+        self.data_added = 0
 
 
 if __name__ == '__main__':
 
     import numpy as np
+    import random
 
     # d = load('results/obj/saved/data_10001_Wolp3_InvertedPendulum-v1#0.json.zip')
     # # d = load('results/obj/saved/data_10000_agent_name4_exp_name#0.json.zip')
@@ -221,19 +234,19 @@ if __name__ == '__main__':
         d.set_reward(i)
         if i % 3 == 0:
             d.finish_and_store_episode()
-            d.temp_save()
+            # d.temp_save()
             # exit()
 
-    for i in range(30, 40):
+    for i in range(30, 400):
         d.set_state([i, i, i, i])
         d.set_action([i, i])
         d.set_actors_action([i, i])
         d.set_ndn_action([i, i])
-        d.set_reward(i)
-        if i % 5 == 0:
+        d.set_reward(random.randint(0, 10))
+        if i % 2 == 0:
             d.finish_and_store_episode()
-            d.temp_save()
+            # d.temp_save()
     #
 
-    # d.print_data()
+    d.print_data()
     d.save()

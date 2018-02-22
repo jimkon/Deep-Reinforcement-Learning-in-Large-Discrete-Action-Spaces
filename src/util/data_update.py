@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 import data_old
 import data
+import numpy as np
 import sys
 sys.path.insert(
     0, "/home/jim/Desktop/dip/Deep-Reinforcement-Learning-in-Large-Discrete-Action-Spaces/src/")
@@ -59,10 +60,11 @@ def update_pickle_file(file_name, eps=0, k=0, v=0):
             space.search_point(actors_result[i], 1)[0]).tolist())
         state = [state_0[i], state_1[i], state_2[i], state_3[i]]
         d_new.set_state(state)
+        d_new.set_reward(1)
         if done[i] > 0:
             # print(ep, i - temp, 'progress', i / l)
             temp = i
-            d_new.set_reward(rewards[ep])
+
             ep += 1
             # if ep % 200 == 199:
             #     d_new.finish_and_store_episode()
@@ -83,13 +85,29 @@ if __name__ == "__main__":
     # update_pickle_file('data_10000_Wolp3_1000k100_InvertedPendulum-v1',
     #                    eps=10000, k=100, v=3)
 
-    folder = "results/obj/saved/"
-    files = get_all_pkl_files(folder)
-    count = 0
-    for f in files:
-        print(f)
-        d = data.load(folder + f)
-        d.save()
+    # print(np.ones(10).tolist())
+    # exit()
+    # folder = "results/obj/"
+    # files = get_all_pkl_files(folder)
+    # count = 0
+    # for f in files:
+    #     # if f == 'data_10000_agen4_exp1000k10#0.json.zip' or f == 'data_10000_Wolp3_Inv10k10#0.json.zip':
+    #     #     continue
+    #     f = 'data_10001_Wolp3_Inv1000k1000#0.json.zip'
+    #     print(f)
+    #     # continue
+    #     d = data.load(folder + f)
+    #     d.data['agent']['version'] = 3
+    #     for episode in d.data['simulation']['episodes']:
+    #         print(episode['rewards'])
+    #         reward = int(episode['rewards'][0][0])
+    #         # print(reward)
+    #
+    #         episode['rewards'] = np.ones(reward).tolist()
+    #         # print(episode['rewards'])
+    #
+    #     d.save()
+    # exit()
     #     # update_pickle_file(f, eps=count)
     #     count += 1
     #     exit()
