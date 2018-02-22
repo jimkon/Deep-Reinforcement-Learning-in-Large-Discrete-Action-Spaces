@@ -152,24 +152,8 @@ class Data:
         else:
             data = data_in
 
-        # self.set_id(data['id'])
-        #
-        # self.set_agent(data['agent']['name'],
-        #                data['agent']['max_actions'],
-        #                data['agent']['k'],
-        #                data['agent']['version'])
-        # self.set_experiment(data['experiment']['name'],
-        #                     data['experiment']['actions_low'],
-        #                     data['experiment']['actions_high'],
-        #                     data['experiment']['number_of_episodes'])
-
         for ep in data['simulation']['episodes']:
-            self.episode['id'] = ep['id']
-            self.set_state(ep['states'])
-            self.set_action(ep['actions'])
-            self.set_actors_action(ep['actors_actions'])
-            self.set_ndn_action(ep['ndn_actions'])
-            self.set_reward(ep['rewards'])
+            self.episode = ep
             self.end_of_episode()
 
     def set_data(self, data):
