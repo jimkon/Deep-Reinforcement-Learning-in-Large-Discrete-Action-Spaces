@@ -1,6 +1,5 @@
 #!/usr/bin/python3
 from data import *
-import data_graph
 import numpy as np
 import matplotlib.pyplot as plt
 import math
@@ -19,6 +18,7 @@ def average_timeline(x):
 
 def apply_func_to_window(data, window_size, func):
     data_lenght = len(data)
+    window_size = min(window_size, data_lenght)
     res = []
     for i in range(data_lenght):
         start = int(max(i - window_size / 2, 0))
@@ -40,6 +40,21 @@ def break_into_batches(data, batches):
     return res
 
 
+def plot_3d_points(points):
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+
+    for x, y, z in points:
+
+        ax.scatter(x, y, z)
+
+    ax.set_xlabel('X Label')
+    ax.set_ylabel('Y Label')
+    ax.set_zlabel('Z Label')
+
+    plt.show()
+
+
 class Data_handler:
 
     def __init__(self, filename):
@@ -50,7 +65,6 @@ class Data_handler:
         result = []
         for i in self.episodes:
             data = i[field]
-
             if isinstance(data, list) and isinstance(data[0], list):
                 result.extend(data)
             else:
@@ -64,9 +78,9 @@ class Data_handler:
             total_rewards.append(np.sum(episode_rewards))
         return total_rewards
 
-    def get_adaption_episode(self, reward_threshold=10, window=20):
+    def get_adaption_episode(self, reward_threshold=10, window=100):
         rewards = self.get_full_episode_rewards()
-        avg = np.array(apply_func_to_window(rewards, 20, np.average))
+        avg = np.array(apply_func_to_window(rewards, window, np.average))
         adaption = np.where(avg > reward_threshold)[0][0]
         return adaption
 
@@ -145,8 +159,11 @@ class Data_handler:
                    ) == 1, 'This function works only for 1-dimensional action space'
         picked_actions = np.array(self.get_episode_data('actions'))
         actors_actions = np.array(self.get_episode_data('actors_actions'))
-        picked_actions = np.reshape(picked_actions, (len(picked_actions)))
-        actors_actions = np.reshape(actors_actions, (len(actors_actions)))
+        # picked_actions = np.reshape(picked_actions, (len(picked_actions)))
+        # actors_actions = np.reshape(actors_actions, (len(actors_actions)))
+        picked_actions = picked_actions.flatten()
+        # print(picked_actions[:100])
+        actors_actions = actors_actions.flatten()
         plt.hist([picked_actions, actors_actions], bins=100,
                  label=['{} actions'.format(len(picked_actions)),
                         'continuous actions'])
@@ -155,7 +172,7 @@ class Data_handler:
         plt.grid(True)
         plt.show()
 
-    def plot_action_distribution_over_time(self, number_of_batches=5, bins=30):
+    def plot_action_distribution_over_time(self, number_of_batches=5, n_bins=30):
         assert len(self.data.data['experiment']['actions_low']
                    ) == 1, 'This function works only for 1-dimensional action space'
         picked_actions = np.array(self.get_episode_data('actions'))
@@ -163,7 +180,7 @@ class Data_handler:
         res = []
         count = 0
         for batch in batches:
-            hist, bins = np.histogram(batch, bins=np.linspace(0, 1, bins))
+            hist, bins = np.histogram(batch, bins=np.linspace(0, 1, n_bins))
             count += 1
             plt.plot(bins[1:], hist, linewidth=1, label='t={}%'.format(
                 100 * count / number_of_batches))
@@ -179,12 +196,18 @@ class Data_handler:
 
         error = np.sqrt(np.sum(np.square(ndn - actors_actions), axis=1))  # square error
         # plt.plot(error, label='error')
-
+        print('Ploting might take a while: number of action to plot {}:'.format(len(ndn)))
         w_avg = apply_func_to_window(error, 1000, np.average)
-        plt.plot(w_avg, label='w error')
+        plt.plot(w_avg, linewidth=1, label='w error')
 
         avg_error = average_timeline(error)
-        plt.plot(avg_error, label='avg_error :{}'.format(avg_error[len(avg_error) - 1]))
+        plt.plot(avg_error, label='avg_error :{}'.format(
+            avg_error[len(avg_error) - 1]))
+
+        avg_number_of_actions = self.data.data['agent']['max_actions']
+        mean_expected_error = 1 / (4 * avg_number_of_actions)
+        plt.plot([0, len(ndn)], [mean_expected_error] * 2,
+                 label='mean expected error={}'.format(mean_expected_error))
 
         plt.legend()
         plt.grid(True)
@@ -194,12 +217,16 @@ class Data_handler:
 if __name__ == "__main__":
     dh = Data_handler('results/obj/data_10000_Wolp3_Inv100k10#0.json.zip')
     # dh = Data_handler('results/obj/data_10000_agen4_exp1000k10#0.json.zip')
-    # dh = Data_handler('results/obj/data_10000_Wolp3_Inv10000k1000#0.json.zip')
+    # dh = Data_handler('results/obj/data_2500_Wolp3_Inv1000k100#0.json.zip')
     print("loaded")
+    #
+    # picked_actions = dh.get_episode_data('actions')
+    # # picked_actions = picked_actions.flatten()
+    # print(picked_actions[:100])
+    # exit()
 
     # dh.get_full_episode_rewards()
     # exit()
-    # dh.plot_rewards()
     # dh.plot_rewards()
     # dh.plot_average_reward()
     # dh.plot_action_distribution()

@@ -161,8 +161,9 @@ class Data:
 
     def save(self, path='', final_save=True):
         if final_save and self.temp_saves > 0:
-            self.end_of_episode()
-            self.temp_save()
+            if self.data_added > 0:
+                self.end_of_episode()
+                self.temp_save()
             print('Data: Merging all temporary files')
             for i in range(self.temp_saves):
                 file_name = '{}temp/{}{}.json'.format(self.PATH,
@@ -218,19 +219,20 @@ if __name__ == '__main__':
         d.set_reward(i)
         if i % 3 == 0:
             d.finish_and_store_episode()
-            # d.temp_save()
+            d.temp_save()
             # exit()
 
-    for i in range(30, 400):
-        d.set_state([i, i, i, i])
-        d.set_action([i, i])
-        d.set_actors_action([i, i])
-        d.set_ndn_action([i, i])
-        d.set_reward(random.randint(0, 10))
-        if i % 2 == 0:
-            d.finish_and_store_episode()
-            # d.temp_save()
-    #
-
-    d.print_data()
+    # for i in range(30, 400):
+    #     d.set_state([i, i, i, i])
+    #     d.set_action([i, i])
+    #     d.set_actors_action([i, i])
+    #     d.set_ndn_action([i, i])
+    #     d.set_reward(random.randint(0, 10))
+    #     if i % 2 == 0:
+    #         d.finish_and_store_episode()
+    #         d.temp_save()
+    # #
+    d.temp_save()
+    d.temp_save()
     d.save()
+    d.print_data()
