@@ -196,7 +196,7 @@ class Data_handler:
 
         error = np.sqrt(np.sum(np.square(ndn - actors_actions), axis=1))  # square error
         # plt.plot(error, label='error')
-        print('Ploting might take a while: number of action to plot {}:'.format(len(ndn)))
+        print('Ploting actions might take a while: number of actions to plot {}:'.format(len(ndn)))
         w_avg = apply_func_to_window(error, 1000, np.average)
         plt.plot(w_avg, linewidth=1, label='w error')
 

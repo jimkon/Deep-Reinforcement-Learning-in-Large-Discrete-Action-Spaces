@@ -1,5 +1,4 @@
 #!/usr/bin/python3
-import data_old
 import data
 import numpy as np
 import sys
@@ -75,39 +74,20 @@ def update_pickle_file(file_name, eps=0, k=0, v=0):
 
 
 if __name__ == "__main__":
-    # update_pickle_file('data_10001_Wolp3_1000k1000_InvertedPendulum-v1',
-    #                    eps=10001, k=1000, v=3)
 
-    # update_pickle_file('data_10000_Wolp3_100k10_InvertedPendulum-v1',
-    #                    eps=10000, k=10, v=4)
-    # update_pickle_file('data_10000_Wolp3_10000k1000_InvertedPendulum-v1',
-    #                    eps=10000, k=1000, v=4)
-    # update_pickle_file('data_10000_Wolp3_1000k100_InvertedPendulum-v1',
-    #                    eps=10000, k=100, v=3)
+    folder = "results/obj/"
+    files = get_all_pkl_files(folder)
 
-    # print(np.ones(10).tolist())
-    # exit()
-    # folder = "results/obj/"
-    # files = get_all_pkl_files(folder)
-    # count = 0
-    # for f in files:
-    #     # if f == 'data_10000_agen4_exp1000k10#0.json.zip' or f == 'data_10000_Wolp3_Inv10k10#0.json.zip':
-    #     #     continue
-    #     f = 'data_10001_Wolp3_Inv1000k1000#0.json.zip'
-    #     print(f)
-    #     # continue
-    #     d = data.load(folder + f)
-    #     d.data['agent']['version'] = 3
-    #     for episode in d.data['simulation']['episodes']:
-    #         print(episode['rewards'])
-    #         reward = int(episode['rewards'][0][0])
-    #         # print(reward)
-    #
-    #         episode['rewards'] = np.ones(reward).tolist()
-    #         # print(episode['rewards'])
-    #
-    #     d.save()
-    # exit()
-    #     # update_pickle_file(f, eps=count)
-    #     count += 1
-    #     exit()
+    f = 'data_10000_Wolp3_Inv100k10#0.json.zip'
+
+    d = data.load(folder + f)
+
+    for episode in d.data['simulation']['episodes']:
+
+        episode['rewards'] = 0
+        episode['actions'] = 0
+        episode['ndn_actions'] = 0
+        episode['actors_actions'] = 0
+    # episode['states'] = 0
+
+    d.save('saved/')
