@@ -1,41 +1,35 @@
 #!/usr/bin/python3
 import numpy as np
-from util.my_plotlib import *
-from util.data import *
-from util.agent_data import *
-import util.data_graph
+from util.data_process import *
 
 
 def show():
     folder = 'saved/'
     episodes = 10000
-    actions = 1000
-    k = 100
+    actions = 100
+    k = 10
     experiment = 'InvertedPendulum-v1'
     v = 3
+    id = 0
 
-    name = '{}data_{}_Wolp{}_{}k{}_{}_shrinked'.format(folder,
-                                                       episodes,
-                                                       v,
-                                                       actions,
-                                                       k,
-                                                       experiment
-                                                       )
+    name = 'results/obj/{}data_{}_Wolp{}_{}{}k{}#{}.json.zip'.format(folder,
+                                                                     episodes,
+                                                                     v,
+                                                                     experiment[:3],
+                                                                     actions,
+                                                                     k,
+                                                                     id
+                                                                     )
 
-    fd = Agent_data(name)
+    data_process = Data_handler(name)
 
-    fd.load()
+    print("Data file is loaded")
 
-    plot_rewards(fd)
-
-    plot_average_reward(fd)
-
-    print('Printing action distribution... This might take a while. # of actions:',
-          len(fd.get_data('actions')))
-    batches = min(11, int(fd.get_number_of_episodes() * .001) + 1)
-    plot_action_distribution(fd, batches=batches)
-
-    plot_actions_statistics(fd)
+    data_process.plot_rewards()
+    data_process.plot_average_reward()
+    data_process.plot_action_distribution()
+    data_process.plot_action_distribution_over_time()
+    data_process.plot_action_error()
 
 
 if __name__ == '__main__':

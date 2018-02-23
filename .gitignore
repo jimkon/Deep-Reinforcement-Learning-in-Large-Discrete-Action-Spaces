@@ -9,9 +9,7 @@ __pycache__
 
 # .py files
 clipboard.py
-example.py
-pyflann_timing.py
-
+src/util/data_update.py
 # .pyc files
 *.pyc
 
@@ -22,7 +20,7 @@ results/*
 results/obj/*
 !results/obj/saved/
 results/obj/saved/*
-!results/obj/saved/data_10000_Wolp3_1000k100_InvertedPendulum-v1_shrinked.pkl
+!results/obj/saved/data_10000_Wolp3_Inv100k10#0.json.zip
 
 !results/obj/temp/
 results/obj/temp/*

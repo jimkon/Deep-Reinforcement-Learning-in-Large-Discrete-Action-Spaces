@@ -1,201 +1,238 @@
-import numpy as np
-import pickle
-from timer import *
+#!/usr/bin/python3
+import json
 import os
+from os.path import splitext, basename
+import zipfile
 
-"""Data structure for data handling, timing, and storing."""
+
+def load(file_name):
+    data = Data()
+    if zipfile.is_zipfile(file_name):
+        print('Data: Unziping ', file_name, '...')
+        with zipfile.ZipFile(file_name) as myzip:
+            string = (myzip.read(myzip.namelist()[0]).decode("utf-8"))
+            data.set_data(json.loads(string))
+    else:
+        print('Data: Loading ', file_name, '...')
+        with open(file_name, 'r') as f:
+            data.set_data(json.load(f))
+    return data
 
 
 class Data:
 
-    def __init__(self, name='default_name'):
-        self.name = name
-        self.data = {}
-        self.timers = {}
+    PATH = 'results/obj/'
+    AUTOSAVE_BATCH_SIZE = 1e5  # 1 mB
+
+    DATA_TEMPLATE = '''
+    {
+        "id":0,
+        "agent":{
+          "name":"default_name",
+          "max_actions":0,
+          "k":0,
+          "version":0
+        },
+        "experiment":{
+          "name":"no_exp",
+          "actions_low":null,
+          "actions_high":null,
+          "number_of_episodes":0
+        },
+        "simulation":{
+          "episodes":[]
+        }
+
+    }
+    '''
+
+    EPISODE_TEMPLATE = '''
+    {
+        "id":0,
+        "states":[],
+        "actions":[],
+        "actors_actions":[],
+        "ndn_actions":[],
+        "rewards":[]
+    }
+    '''
+
+    def __init__(self):
+        self.data = json.loads(self.DATA_TEMPLATE)
+        self.episode = json.loads(self.EPISODE_TEMPLATE)
+        self.episode_id = 0
         self.temp_saves = 0
+        self.data_added = 0
 
-    def _add(self, field_name, timer, timer_one_hot=True):
-        if field_name in self.data.keys():
-            return
-        self.data[field_name] = np.array([])
-        if timer:
-            self.timers[field_name] = Timer(timer_one_hot)
+    def __increase_data_counter(self, n=1):
+        self.data_added += n
 
-    def add_array(self, field_name):
-        self._add(field_name, False)
-        # self.data[field_name] = np.array([])
+    def set_id(self, n):
+        self.data['id'] = n
 
-    def add_arrays(self, fields, prefix=''):
-        for f in fields:
-            self.add_array(prefix + f)
+    def set_agent(self, name, max_actions, k, version):
+        self.data['agent']['name'] = name
+        self.data['agent']['max_actions'] = max_actions
+        self.data['agent']['k'] = k
+        self.data['agent']['version'] = version
 
-    def add_to_array(self, field_name, value, abs_name=False):
-        if abs_name:
-            self.data[field_name] = np.append(self.data[field_name], value)
-        else:
-            fields = self.get_keys(field_name)
-            for f in fields:
-                self.data[f] = np.append(self.data[f], value)
+    def set_experiment(self, name, low, high, eps):
+        self.data['experiment']['name'] = name
+        self.data['experiment']['actions_low'] = low
+        self.data['experiment']['actions_high'] = high
+        self.data['experiment']['number_of_episodes'] = eps
 
-    def add_timer(self, field_name, one_hot=True):
-        self._add(field_name, True, one_hot)
-        # self.add_array(name)
-        # self.timers[name] = Timer()
+    def set_state(self, state):
+        self.episode['states'].append(state)
+        self.__increase_data_counter(len(state))
 
-    def add_timers(self, names, prefix='', one_hot=True):
-        for f in names:
-            self.add_timer(prefix + f, one_hot)
+    def set_action(self, action):
+        self.episode['actions'].append(action)
+        self.__increase_data_counter(len(action))
 
-    def start_timer(self, field_name):
-        fields = self.get_keys(field_name)
-        for f in fields:
-            self.timers[f].reset()
+    def set_actors_action(self, action):
+        self.episode['actors_actions'].append(action)
+        self.__increase_data_counter(len(action))
 
-    def sample_timer(self, field_name, abs_name=False):
-        if abs_name:
-            self.data[field_name] = np.append(
-                self.data[field_name], self.timers[field_name].get_time())
-        else:
-            fields = self.get_keys(field_name)
-            timer_keys = self.timers.keys()
-            for f in fields:
-                if f in timer_keys:
-                    self.data[f] = np.append(self.data[f], self.timers[f].get_time())
+    def set_ndn_action(self, action):
+        self.episode['ndn_actions'].append(action)
+        self.__increase_data_counter(len(action))
 
-        self.reset_timers_one_hot()
+    def set_reward(self, reward):
+        self.episode['rewards'].append(reward)
+        self.__increase_data_counter()
 
-    def reset_field(self, key):
-        self.data[key] = np.array([])
+    def end_of_episode(self):
+        self.data['simulation']['episodes'].append(self.episode)
+        self.episode = json.loads(self.EPISODE_TEMPLATE)
+        self.episode_id += 1
+        self.episode['id'] = self.episode_id
 
-    def reset_fields(self):
+    def finish_and_store_episode(self):
+        self.end_of_episode()
+        # print(self.data_added / self.AUTOSAVE_BATCH_SIZE)
+        if self.data_added > self.AUTOSAVE_BATCH_SIZE:
+            self.temp_save()
+
+    def get_file_name(self):
+        return 'data_{}_{}_{}{}k{}#{}'.format(self.get_episodes(),
+                                              self.get_agent_name(),
+                                              self.get_experiment()[:3],
+                                              self.data['agent']['max_actions'],
+                                              self.data['agent']['k'],
+                                              self.get_id())
+
+    def get_episodes(self):
+        return self.data['experiment']['number_of_episodes']
+
+    def get_agent_name(self):
+        return '{}{}'.format(self.data['agent']['name'][:4],
+                             self.data['agent']['version'])
+
+    def get_id(self):
+        return self.data['id']
+
+    def get_experiment(self):
+        return self.data['experiment']['name']
+
+    def print_data(self):
+        print(json.dumps(self.data, indent=2, sort_keys=True))
+
+    def print_stats(self):
         for key in self.data.keys():
-            self.reset_field(key)
+            d = self.data[key]
+            if key == 'simulation':
+                print('episodes:', len(d['episodes']))
+            else:
+                print(json.dumps(d, indent=2, sort_keys=True))
 
-    def reset_timers(self):
-        for t in self.timers:
-            self.timers[t].reset()
+    def merge(self, data_in):
+        if type(data_in) is Data:
+            data = data_in.data
+        else:
+            data = data_in
 
-    def reset_timers_one_hot(self):
-        for t in self.timers:
-            self.timers[t].reset_one_hot()
+        for ep in data['simulation']['episodes']:
+            self.episode = ep
+            self.end_of_episode()
 
-    def set_data(self, field_name, data):
-        self.data[field_name] = data
+    def set_data(self, data):
+        self.data = data
 
-    def get_data(self, field_name):
-        return self.data[field_name]
+    def save(self, path='', final_save=True):
+        if final_save and self.temp_saves > 0:
+            if self.data_added > 0:
+                self.end_of_episode()
+                self.temp_save()
+            print('Data: Merging all temporary files')
+            for i in range(self.temp_saves):
+                file_name = '{}temp/{}{}.json'.format(self.PATH,
+                                                      i,
+                                                      self.get_file_name())
+                # print(file_name)
+                temp_data = load(file_name)
+                # temp_data.print_data()
+                # print('^^^^^^^^^^^^')
+                self.merge(temp_data)
+                os.remove(file_name)
 
-    def print_data(self, field_name=''):
-        keys = list(self.get_keys(field_name))
-        keys.sort()
-        for key in keys:
-            print(key, self.data[key].shape, self.data[key])
-
-    def print_fields(self):
-        for k in self.get_keys():
-            print(k)
-
-    def merge(self, data):
-        for key in self.data.keys():
-            if key not in data.data.keys():
-                continue
-
-            final_data = np.concatenate((self.get_data(key), data.get_data(key)))
-            self.set_data(key, final_data)
-
-    def load(self, path=None):
-        if path is None:
-            path = self.name
-        with open('results/obj/' + path + '.pkl', 'rb') as f:
-            self.data = pickle.load(f)
+        final_file_name = self.PATH + path + self.get_file_name() + '.json'
+        if final_save:
+            print('Data: Ziping', final_file_name)
+            with zipfile.ZipFile(final_file_name + '.zip', 'w', zipfile.ZIP_DEFLATED) as myzip:
+                myzip.writestr(basename(final_file_name), json.dumps(
+                    self.data, indent=2, sort_keys=True))
+        else:
+            with open(final_file_name, 'w') as f:
+                print('Data: Saving', final_file_name)
+                json.dump(self.data, f)
 
     def temp_save(self):
-        self.save(path='temp/{}_temp{}'.format(self.name, self.temp_saves), final_save=False)
-        self.temp_saves += 1
-        self.reset_fields()
-
-    def save(self, path=None, final_save=True):
-        if path == None:
-            path = self.name
-
-        if final_save and self.temp_saves > 0:
-            clone_data = self.get_empty_clone()
-            for i in range(self.temp_saves):
-                temp_file = 'temp/{}_temp{}'.format(self.name, i)
-                temp_data = Data()
-                temp_data.load(path=temp_file)
-                clone_data.merge(temp_data)
-                os.remove('results/obj/' + temp_file + '.pkl')
-            clone_data.merge(self)
-            self.data = clone_data.data
-
-        with open('results/obj/' + path + '.pkl', 'wb') as f:
-            pickle.dump(self.data, f, 0)
-
-    def print_times(self, other_keys=None, groups=None, total_time_field=None):
-        final_keys = []
-        if (other_keys is None) and (groups is None):
-            final_keys = self.timers.keys()
-        else:
-            if other_keys is not None:
-                final_keys.extend(other_keys)
-
-            if groups is not None:
-                timers = self.timers.keys()
-                for g in groups:
-                    for t in timers:
-                        if g in t:
-                            final_keys.append(t)
-
-        if (final_keys is None) or (len(final_keys) == 0):
-            print("data.Data.print_times: No items found to be printed")
+        if self.data_added == 0:
             return
+        self.save(path='temp/' + str(self.temp_saves), final_save=False)
+        self.temp_saves += 1
+        self.data['simulation']['episodes'] = []  # reset
+        self.data_added = 0
 
-        times = {}
-        total_time = 0
-        samples = []
 
-        for key in final_keys:
-            times[key] = np.sum(self.get_data(key))
-            total_time += times[key]
+if __name__ == '__main__':
 
-            samples.append(len(self.get_data(key)))
+    import numpy as np
+    import random
 
-        count = max(samples)
-        if total_time_field is not None:
-            count = np.sum(self.get_data(total_time_field))
+    # d = load('results/obj/saved/data_10001_Wolp3_InvertedPendulum-v1#0.json.zip')
+    # # d = load('results/obj/saved/data_10000_agent_name4_exp_name#0.json.zip')
+    # print(d.get_file_name())
+    # d = load('results/obj/data_10000_agent_name4_exp_name#0.json.zip')
+    d = Data()
+    d.set_agent('agent_name', 1000, 10, 4)
+    d.set_experiment('exp_name', [-2, -3], [3, 2], 10000)
 
-        print('\n\nName: {}\tCount: {} Group:{}'.format(self.name, count, groups))
-        print('key\t\tabs\t\tavg/unit\t% of total')
-        print('-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-')
+    # d.print_data()
+    #
+    for i in range(10):
+        d.set_state([i, i, i, i])
+        d.set_action([i, i])
+        d.set_actors_action([i, i])
+        d.set_ndn_action([i, i])
+        d.set_reward(i)
+        if i % 3 == 0:
+            d.finish_and_store_episode()
+            d.temp_save()
+            # exit()
 
-        keys = list(final_keys)
-        keys.sort()
-        max_key_len = 5
-        for key in keys:
-            if max_key_len < len(key):
-                max_key_len = len(key)
-
-        for key in keys:
-            temp = times[key]
-            avg = temp / count
-            total = 100 * temp / total_time
-            print('{}{}\t\t{}\t\t{:6.2f}\t\t{:6.2f}'.format(
-                key, '.' * (max_key_len - len(key)), temp, avg, total))
-
-        print('Total{}\t\t{}\t\t{:6.2f}\t\t 100.0'.format(
-            '.' * (max_key_len - 5), total_time, total_time / count))
-
-    def get_keys(self, key=''):
-        res = []
-        for k in self.data.keys():
-            # if k.find(key) >= 0:
-            if key in k:
-                res.append(k)
-
-        return res
-
-    def get_empty_clone(self):
-        res = Data(self.name + '_clone')
-        res.add_arrays(self.get_keys())
-        return res
+    # for i in range(30, 400):
+    #     d.set_state([i, i, i, i])
+    #     d.set_action([i, i])
+    #     d.set_actors_action([i, i])
+    #     d.set_ndn_action([i, i])
+    #     d.set_reward(random.randint(0, 10))
+    #     if i % 2 == 0:
+    #         d.finish_and_store_episode()
+    #         d.temp_save()
+    # #
+    d.temp_save()
+    d.temp_save()
+    d.save()
+    d.print_data()

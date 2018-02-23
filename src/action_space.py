@@ -2,8 +2,8 @@ import numpy as np
 import itertools
 import pyflann
 
-import util.my_plotlib as mplt
-from util.data_graph import plot_3d_points
+import matplotlib.pyplot as plt
+from util.data_process import plot_3d_points
 
 
 """
@@ -69,17 +69,15 @@ class Space:
                 space = np.append(space, additional_points, axis=0)
 
         if dims == 1:
-            lines = []
             for x in space:
-                lines.append(mplt.Line([x], [0], line_color='o'))
+                plt.plot([x], [0], line_color='o')
 
-            mplt.plot_lines(lines)
+            plt.show()
         elif dims == 2:
-            lines = []
             for x, y in space:
-                lines.append(mplt.Line([x], [y], line_color='o'))
+                plt.plot([x], [y], line_color='o')
 
-            mplt.plot_lines(lines)
+            plt.show()
         else:
             plot_3d_points(space)
 
