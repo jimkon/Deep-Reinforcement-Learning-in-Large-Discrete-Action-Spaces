@@ -16,6 +16,7 @@ from util.data_process import plot_3d_points
 class Space:
 
     def __init__(self, low, high, points):
+
         self._low = np.array(low)
         self._high = np.array(high)
         self._range = self._high - self._low
@@ -37,6 +38,8 @@ class Space:
         for p in knns:
             p_out.append(self.export_point(p))
 
+        if k == 1:
+            p_out = [p_out]
         return np.array(p_out)
 
     def import_point(self, point):
@@ -70,16 +73,25 @@ class Space:
 
         if dims == 1:
             for x in space:
-                plt.plot([x], [0], line_color='o')
+                plt.plot([x], [0], 'o')
 
             plt.show()
         elif dims == 2:
             for x, y in space:
-                plt.plot([x], [y], line_color='o')
+                plt.plot([x], [y], 'o')
 
             plt.show()
         else:
             plot_3d_points(space)
+
+
+class Discrete_space(Space):
+
+    def __init__(self, n):
+        super().__init__([0], [n - 1], n)
+
+    def export_point(self, point):
+        return super().export_point(point).astype(int)
 
 
 def init_uniform_space(low, high, points):
