@@ -7,9 +7,10 @@ from util.data_process import plot_3d_points
 
 
 """
-    This class represents a n-dimensional cube with a specific number of points embeded.
+    This class represents a n-dimensional unit cube with a specific number of points embeded.
     Points are distributed uniformly in the initialization. A search can be made using the
     search_point function that returns the k (given) nearest neighbors of the input point.
+
 """
 
 
@@ -32,7 +33,6 @@ class Space:
 
     def search_point(self, point, k):
         p_in = self.import_point(point)
-        print(point, p_in)
         search_res, _ = self._flann.nn_index(p_in, k)
         knns = self.__space[search_res]
         p_out = []
@@ -87,8 +87,12 @@ class Space:
 
 
 class Discrete_space(Space):
+    """
+        Discrete action space with n actions (the integers in the range [0, n))
+        0, 1, 2, ..., n-2, n-1
+    """
 
-    def __init__(self, n):
+    def __init__(self, n):  # n: the number of the discrete actions
         super().__init__([0], [n - 1], n)
 
     def export_point(self, point):
