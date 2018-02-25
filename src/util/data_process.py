@@ -214,21 +214,21 @@ class Data_handler:
         plt.show()
 
 
-if __name__ == "__main__":
-    dh = Data_handler('results/obj/data_10000_Wolp3_Inv100k10#0.json.zip')
-    # dh = Data_handler('results/obj/data_10000_agen4_exp1000k10#0.json.zip')
-    # dh = Data_handler('results/obj/data_2500_Wolp3_Inv1000k100#0.json.zip')
-    print("loaded")
-    #
-    # picked_actions = dh.get_episode_data('actions')
-    # # picked_actions = picked_actions.flatten()
-    # print(picked_actions[:100])
-    # exit()
-
-    # dh.get_full_episode_rewards()
-    # exit()
-    # dh.plot_rewards()
-    # dh.plot_average_reward()
-    # dh.plot_action_distribution()
-    # dh.plot_action_distribution_over_time()
-    dh.plot_action_error()
+# if __name__ == "__main__":
+#     dh = Data_handler('results/obj/data_10000_Wolp3_Inv100k10#0.json.zip')
+#     # dh = Data_handler('results/obj/data_10000_agen4_exp1000k10#0.json.zip')
+#     # dh = Data_handler('results/obj/data_2500_Wolp3_Inv1000k100#0.json.zip')
+#     print("loaded")
+#     #
+#     # picked_actions = dh.get_episode_data('actions')
+#     # # picked_actions = picked_actions.flatten()
+#     # print(picked_actions[:100])
+#     # exit()
+#
+#     # dh.get_full_episode_rewards()
+#     # exit()
+#     # dh.plot_rewards()
+#     # dh.plot_average_reward()
+#     # dh.plot_action_distribution()
+#     # dh.plot_action_distribution_over_time()
+#     dh.plot_action_error()
