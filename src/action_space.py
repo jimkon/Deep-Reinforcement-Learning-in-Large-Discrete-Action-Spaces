@@ -32,6 +32,7 @@ class Space:
 
     def search_point(self, point, k):
         p_in = self.import_point(point)
+        print(point, p_in)
         search_res, _ = self._flann.nn_index(p_in, k)
         knns = self.__space[search_res]
         p_out = []

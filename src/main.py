@@ -28,10 +28,12 @@ def run(episodes=2500,
     timer = Timer()
 
     data = util.data.Data()
-    data.set_agent(agent.get_name(), int(max_actions), agent.k_nearest_neighbors, 3)
+    data.set_agent(agent.get_name(), int(agent.action_space.get_number_of_actions()),
+                   agent.k_nearest_neighbors, 3)
     data.set_experiment(experiment, agent.low.tolist(), agent.high.tolist(), episodes)
 
     agent.add_data_fetch(data)
+    print(data.get_file_name())
 
     full_epoch_timer = Timer()
     reward_sum = 0
@@ -55,7 +57,7 @@ def run(episodes=2500,
             data.set_state(observation.tolist())
 
             prev_observation = observation
-            observation, reward, done, info = env.step(action)
+            observation, reward, done, info = env.step(action[0] if len(action) == 1 else action)
 
             data.set_reward(reward)
 
