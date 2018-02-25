@@ -33,10 +33,10 @@ class Agent:
             self.low = env.action_space.low
             self.high = env.action_space.high
         else:  # dont need in this implementation
-            self.action_space_size = env.action_space.n
+            self.action_space_size = 1
             self.continious_action_space = False
-            self.low = [0]
-            self.high = [env.action_space.n]
+            self.low = np.array([0])
+            self.high = np.array([env.action_space.n])
 
     def act(self, state):
         pass
@@ -57,36 +57,6 @@ class Agent:
         return res
 
 
-class RandomAgent(Agent):
-
-    def act(self, state):
-        if self.continious_action_space:
-            res = self.low + (self.high - self.low) * np.random.uniform(size=len(self.low))
-            return res
-        else:
-            return random.randint(self.low, self.high - 1)
-
-    def get_name(self):
-        return 'Random' + super().get_name()
-
-
-class DiscreteRandomAgent(RandomAgent):
-
-    def __init__(self, env, max_actions=10):
-        super().__init__(env)
-        if self.continious_action_space:
-            self.discrete_actions = np.linspace(self.low, self.high, max_actions)
-        else:
-            self.discrete_actions = np.arange(self.low, self.high)
-        self.discrete_actions = list(self.discrete_actions)
-
-    def act(self, state):
-        return random.sample(self.discrete_actions, 1)[0]
-
-    def get_name(self):
-        return 'Discrete' + super().get_name()
-
-
 class DDPGAgent(Agent):
     ''' stevenpjg's implementation of DDPG algorithm '''
 
@@ -96,7 +66,7 @@ class DDPGAgent(Agent):
 
     def __init__(self, env, is_batch_norm=False, is_grad_inverter=True):
         super().__init__(env)
-        assert isinstance(env.action_space, Box), "action space must be continuous"
+
         if is_batch_norm:
             self.critic_net = CriticNet_bn(self.observation_space_size,
                                            self.action_space_size)

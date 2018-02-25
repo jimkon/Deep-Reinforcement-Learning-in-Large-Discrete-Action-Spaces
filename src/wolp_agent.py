@@ -12,12 +12,12 @@ class WolpertingerAgent(agent.DDPGAgent):
         self.experiment = env.spec.id
         if self.continious_action_space:
             self.action_space = action_space.Space(self.low, self.high, max_actions)
+            max_actions = self.action_space.get_number_of_actions()
         else:
-            #
-            print('This version works only for continuous action space')
-            exit()
+            max_actions = int(env.action_space.n)
+            self.action_space = action_space.Discrete_space(max_actions)
 
-        self.k_nearest_neighbors = int(max_actions * k_ratio)
+        self.k_nearest_neighbors = max(1, int(max_actions * k_ratio))
 
     def get_name(self):
         return 'Wolp3_{}k{}_{}'.format(self.action_space.get_number_of_actions(),
@@ -29,8 +29,8 @@ class WolpertingerAgent(agent.DDPGAgent):
     def act(self, state):
         # taking a continuous action from the actor
         proto_action = super().act(state)
-        if self.k_nearest_neighbors < 1:
-            return proto_action
+        # if self.k_nearest_neighbors < 1:
+        #     return proto_action
 
         # return the best neighbor of the proto action
         return self.wolp_action(state, proto_action)
