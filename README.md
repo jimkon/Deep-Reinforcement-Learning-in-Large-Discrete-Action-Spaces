@@ -9,4 +9,6 @@ This paper introduces Wolpertinger training algorithm that extends the Deep Dete
 
 I used and extended  **stevenpjg**'s implementation of **DDPG** algorithm found [here](https://github.com/stevenpjg/ddpg-aigym) licensed under the MIT license.
 
-My implementation is **only for continuous action spaces**.
+Master is currently **only for continuous action spaces**.
+
+The branch discrete-and-continuous provides the ability to use the discrete environments of the gym. 
